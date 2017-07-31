@@ -1,0 +1,188 @@
+{% verbatim %}
+<uib-progressbar class="progress-striped active" ng-show="StatsCtrl.loading == true" value="100" type="info">
+  STATS LOADING
+</uib-progressbar>
+
+<div class="row">
+  <div class="col-md-3">
+    <div class="panel panel-primary">
+      <div class="list-group">
+        <a href class="list-group-item" ng-href="#SearchResults" ng-click="SearchCtrl.performSearch({'status': 'active'})">
+          <span class="badge">{{ StatsCtrl.stats.active_count }}</span>
+          Active Rules
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="panel panel-primary">
+      <div class="list-group">
+        <a href class="list-group-item" ng-href="#SearchResults" ng-click="SearchCtrl.performSearch({'status': 'inactive'})">
+          <span class="badge">{{ StatsCtrl.stats.inactive_count }}</span>
+          Inactive Rules
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="panel panel-primary">
+      <div class="list-group">
+        <a href class="list-group-item" ng-href="#SearchResults" ng-click="SearchCtrl.performSearch({'status': 'pending'})">
+          <span class="badge">{{ StatsCtrl.stats.pending_count }}</span>
+          Pending Rules
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="panel panel-primary">
+      <div class="list-group">
+        <a href class="list-group-item" ng-href="#SearchResults" ng-click="SearchCtrl.performSearch({'status': 'rejected'})">
+          <span class="badge">{{ StatsCtrl.stats.rejected_count }}</span>
+          Rejected Rules
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-4">
+    <div class="panel panel-primary">
+      <div class="panel-heading">Missing Dependecies
+      </div>
+      <div class="list-group">
+        <a href class="list-group-item"
+                ng-href="#SearchResults"
+                ng-repeat="(key, count) in StatsCtrl.stats.missing_dependency_count"
+                ng-click="SearchCtrl.performSearch({'any_dependency': key})">
+          <span class="badge">{{ count }}</span>
+          {{ key }}
+        </a>
+        <a href="#" class="list-group-item disabled" ng-if="(StatsCtrl.stats.missing_dependency_count | isEmpty)">None</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="panel panel-primary">
+      <div class="panel-heading">Name Conflicts</div>
+      <div class="list-group">
+        <a href class="list-group-item"
+                ng-href="#SearchResults"
+                ng-repeat="(key, count) in StatsCtrl.stats.name_conflict_count"
+                ng-click="SearchCtrl.performSearch({'name': key})">
+          <span class="badge">{{ count }}</span>
+          {{ key }}
+        </a>
+        <a href class="list-group-item disabled" ng-if="(StatsCtrl.stats.name_conflict_count | isEmpty)">None</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="panel panel-primary">
+      <div class="panel-heading">Logic Conflicts</div>
+      <div class="list-group">
+        <a href class="list-group-item"
+                ng-href="#SearchResults"
+                ng-repeat="(key, count) in StatsCtrl.stats.logic_collision_count"
+                ng-click="SearchCtrl.performSearch({'logic_hash': key})">
+          <span class="badge">{{ count }}</span>
+          {{ key }}
+        </a>
+        <a href="#" class="list-group-item disabled" ng-if="(StatsCtrl.stats.logic_collision_count | isEmpty)">None</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-6">
+    <div class="panel panel-primary">
+      <div class="panel-heading">Sources</div>
+      <div class="list-group">
+        <a href class="list-group-item"
+                ng-href="#SearchResults"
+                ng-repeat="(key, count) in StatsCtrl.stats.source_count"
+                ng-click="SearchCtrl.performSearch({'source': key})">
+          <span class="badge">{{ count }}</span>
+          {{ key }}
+        </a>
+        <a href="#" class="list-group-item disabled" ng-if="(StatsCtrl.stats.source_count | isEmpty)">None</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="panel panel-primary">
+      <div class="panel-heading">Categories</div>
+      <div class="list-group">
+        <a href class="list-group-item"
+                ng-href="#SearchResults"
+                ng-repeat="(key, count) in StatsCtrl.stats.category_count"
+                ng-click="SearchCtrl.performSearch({'category': key})">
+          <span class="badge">{{ count }}</span>
+          {{ key }}
+        </a>
+        <a href="#" class="list-group-item disabled" ng-if="(StatsCtrl.stats.category_count | isEmpty)">None</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-6">
+    <div class="panel panel-primary">
+      <div class="panel-heading">
+        Tags
+
+        <p class="pull-right" ng-if="StatsCtrl.panelDisplays.tags.maxPage != 0">
+          <a href ng-click="StatsCtrl.changeTagDisplayPage(StatsCtrl.panelDisplays.tags.currentPage - 1)"><span class="glyphicon glyphicon-chevron-left"></span></a>
+          page {{ StatsCtrl.panelDisplays.tags.currentPage }} of {{ StatsCtrl.panelDisplays.tags.maxPage }}
+          <a href ng-click="StatsCtrl.changeTagDisplayPage(StatsCtrl.panelDisplays.tags.currentPage + 1)"><span class="glyphicon glyphicon-chevron-right"></span></a>
+        </p>
+
+      </div>
+      <div class="list-group">
+        <a href class="list-group-item"
+                ng-href="#SearchResults"
+                ng-repeat="pageEntry in StatsCtrl.panelDisplays.tags.pageEntries[StatsCtrl.panelDisplays.tags.currentPage]"
+                ng-click="SearchCtrl.performSearch({'any_tag': pageEntry[0]})">
+          <span class="badge">{{ pageEntry[1] }}</span>
+          {{ pageEntry[0] }}
+        </a>
+        <a href="#" class="list-group-item disabled" ng-if="(StatsCtrl.stats.tag_count | isEmpty)">None</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="panel panel-primary">
+      <div class="panel-heading">
+        Metadata
+
+        <p class="pull-right" ng-if="StatsCtrl.panelDisplays.metakeys.maxPage != 0">
+          <a href ng-click="StatsCtrl.changeMetakeyDisplayPage(StatsCtrl.panelDisplays.metakeys.currentPage - 1)"><span class="glyphicon glyphicon-chevron-left"></span></a>
+          page {{ StatsCtrl.panelDisplays.metakeys.currentPage }} of {{ StatsCtrl.panelDisplays.metakeys.maxPage }}
+          <a href ng-click="StatsCtrl.changeMetakeyDisplayPage(StatsCtrl.panelDisplays.metakeys.currentPage + 1)"><span class="glyphicon glyphicon-chevron-right"></span></a>
+        </p>
+
+      </div>
+      <div class="list-group">
+        <a href class="list-group-item"
+                ng-href="#SearchResults"
+                ng-repeat="pageEntry in StatsCtrl.panelDisplays.metakeys.pageEntries[StatsCtrl.panelDisplays.metakeys.currentPage]"
+                ng-click="SearchCtrl.performSearch({'any_metakey': pageEntry[0]})">
+          <span class="badge">{{ pageEntry[1] }}</span>
+          {{ pageEntry[0] }}
+        </a>
+        <a href="#" class="list-group-item disabled" ng-if="(StatsCtrl.stats.metakey_count | isEmpty)">None</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endverbatim %}

@@ -1,0 +1,71 @@
+{% extends "components/ModalContent.html" %}
+
+{% block MODAL_IDENTIFIER %}
+  "commentModalWrite.html"
+{% endblock MODAL_IDENTIFIER %}
+
+
+{% block MODAL_HEADER %}
+
+  {% verbatim %}
+    Comments for {{ ModalCtrl.rule.name }}
+  {% endverbatim %}
+
+{% endblock MODAL_HEADER %}
+
+
+{% block MODAL_BODY %}
+  {% verbatim %}
+    <div class="row">
+      <div class="col-md-6">
+        <ul class="list-group">
+          <li class="list-group-item" ng-repeat="comment in ModalCtrl.rule.comments">
+            <div class="row">
+              <div class="col-md-10">
+                <h5 class="list-group-item-heading">
+                  <span class="glyphicon glyphicon-user"></span> {{ comment.poster.username }}
+                  <p class="pull-right">{{ comment.modified | date:'yyyy-MM-dd HH:mm:ss Z' }}</p>
+                </h5>
+                <p class="list-group-item-text">{{ comment.content }}</p>
+              </div>
+
+              <div class="col-md-2">
+                <div class="btn-group" uib-dropdown>
+                  <button type="button" class="btn btn-sm btn-danger" uib-dropdown-toggle>
+                    <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+                  </button>
+                  <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+                    <li>
+                      <a href ng-click="ModalCtrl.deleteComment(comment)">Delete comment</a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <div class="col-md-6">
+          <div class="panel panel-primary">
+            <div class="panel-heading">Add Comment</div>
+            <div class="panel-body">
+              <textarea rows=5 name="content" class="form-control" ng-model="ModalCtrl.commentContent"></textarea>
+            </div>
+            <div class="panel-footer">
+              <center>
+                <button class="btn btn-primary" type="button" ng-click="ModalCtrl.createComment()">Save</button>
+              </center>
+            </div>
+          </div>
+      </div>
+    </div>
+  {% endverbatim %}
+{% endblock MODAL_BODY %}
+
+
+{% block MODAL_FOOTER %}
+  <center>
+    <button class="btn btn-danger" type="button" ng-click="ModalCtrl.cancel()">Close</button>
+  </center>
+{% endblock MODAL_FOOTER %}

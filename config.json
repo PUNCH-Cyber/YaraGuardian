@@ -1,0 +1,11 @@
+{
+  "DEBUG": "True",
+
+  "SECRET_KEY": "DEVELOPER_MODE_CHANGE_ME",
+
+  "DATABASE_NAME": "yara_guardian",
+
+  "DATABASE_USER": "yara_guardian",
+
+  "DATABASE_PASS": "yara_guardian_password"
+}

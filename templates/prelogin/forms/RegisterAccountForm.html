@@ -1,0 +1,45 @@
+{% extends "components/CenteredPanelForm.html" %}
+{% load core_extras %}
+
+{% block FORM_ACTION %}"{% url 'RegisterAccount' %}"{% endblock FORM_ACTION %}
+
+{% block FORM_ERRORS %}
+  {% if form.errors %}
+    {% for field in form %}
+      {% for error in field.errors %}
+        {% if error == "This field is required." %}
+          <div class="alert alert-danger" role="alert">{{ field.name|title }} {{ error|cut:"This field" }}</div>
+        {% else %}
+          <div class="alert alert-danger" role="alert">{{ error|escape }}</div>
+        {% endif %}
+      {% endfor %}
+    {% endfor %}
+    {% for error in form.non_field_errors %}
+      <div class="alert alert-danger" role="alert">{{ error|escape }}</div>
+    {% endfor %}
+  {% endif %}
+{% endblock FORM_ERRORS %}
+
+{% block PANEL_HEADING %}Register Account{% endblock PANEL_HEADING %}
+
+{% block PANEL_BODY %}
+<div class="form-group input-group">
+  <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
+  <input class="form-control" type="text" name='{{ form.username.html_name }}' placeholder="username"/>
+</div>
+
+<div class="form-group input-group">
+  <span class="input-group-addon"><i class="glyphicon glyphicon-envelope"></i></span>
+  <input class="form-control" type="text" name='{{ form.email.html_name }}' placeholder="email"/>
+</div>
+
+{% if view.token_required %}
+  <div class="form-group input-group">
+    <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
+    <input class="form-control" type="password" name='{{ form.token.html_name }}' placeholder="registration token"/>
+  </div>
+{% endif %}
+
+<input class="btn btn-success" type="submit" value="Register Account" />
+<a href="{% url 'Login' %}" class="btn btn-danger">Cancel</a>
+{% endblock PANEL_BODY %}

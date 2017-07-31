@@ -1,0 +1,8 @@
+{% load static %}
+
+You have been invited to register a Yara Manager account.
+
+To create your account, please visit http://0.0.0.0/register/ and provide the following information:
+
+Invited Email Address: {{ email }}
+Registation Token: {{ token }}

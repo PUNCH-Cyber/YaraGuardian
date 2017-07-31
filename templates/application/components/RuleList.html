@@ -1,0 +1,246 @@
+<div class="panel panel-default" id="SearchResults" ng-if="SearchCtrl.search.result_count > -1">
+
+  {% verbatim %}
+  <div class="panel-heading">
+    <a ng-href="#TopNavigation">
+      <span class="glyphicon glyphicon-arrow-up"></span>
+    </a>
+
+    <a ng-href="#BottomNavigation">
+      <span class="glyphicon glyphicon-arrow-down"></span>
+    </a>
+
+    {{ SearchCtrl.search.result_count }} Search Results <span ng-repeat="(key, value) in SearchCtrl.search.query_params"> | {{ key }}={{ value }}</span>
+  </div>
+  {% endverbatim %}
+
+  <!-- Pagination -->
+  <div class="panel-body">
+    <div>
+      <center>
+
+      </center>
+    </div>
+
+    <div>
+      {% verbatim %}
+        <center>
+          <ul class="pagination" ng-if="SearchCtrl.search.result_count > 0">
+            <li>
+              <a href ng-if="SearchCtrl.search.previous" aria-label="Previous" ng-click="SearchCtrl.followPage(SearchCtrl.search.previous)">
+                <span aria-hidden="true">&laquo;</span>
+              </a>
+            </li>
+            <li ng-repeat="page_num in [] | contentRange:SearchCtrl.search.page_count"
+                ng-class="{ active: page_num == SearchCtrl.search.current_page}">
+              <a href ng-click="SearchCtrl.followPage(SearchCtrl.search.base_search + '&page=' + page_num)">{{ page_num }}</a>
+            </li>
+            <li>
+              <a href ng-if="SearchCtrl.search.next" aria-label="Next" ng-click="SearchCtrl.followPage(SearchCtrl.search.next)">
+                <span aria-hidden="true">&raquo;</span>
+              </a>
+            </li>
+          </ul>
+        </center>
+      {% endverbatim %}
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive" ng-if="SearchCtrl.search.results.length">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Name</th>
+            <th>Tags</th>
+            <th>Metadata</th>
+            <th>Source</th>
+            <th>Category</th>
+            <th></th>
+            <th></th>
+            <th></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr ng-repeat="rule in SearchCtrl.search.results">
+            <td>
+                <input type="checkbox"
+                       ng-model="BulkCtrl.selectedRules[rule.id]"
+                       ng-if="AccountCtrl.userIsOwnerOrAdmin()">
+            </td>
+            {% verbatim %}
+            <td title="{{ rule.name }}">
+              <a href ng-click="RuleCtrl.showRule(rule)">
+                 {{ rule.name | limitTo: 50 }}{{rule.name.length > 50 ? '...' : ''}}</a>
+            </td>
+            {% endverbatim %}
+            <td>
+              {% verbatim %}
+              <div class="btn-group" ng-repeat="tag in rule.tags" uib-dropdown
+                   ng-if="AccountCtrl.userIsOwnerOrAdmin()">
+                <button type="button" class="btn btn-default" uib-dropdown-toggle>{{ tag }}</button>
+                <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+                  <li role="menuitem">
+                    <a href ng-click="RuleCtrl.removeTag(rule, tag)">Remove '{{ tag }}'</a>
+                  </li>
+                </ul>
+              </div>
+
+              <button type="button"
+                      class="btn btn-default"
+                      disabled
+                      ng-repeat="tag in rule.tags"
+                      ng-if="AccountCtrl.userIsOwnerOrAdmin() == false">{{ tag }}</button>
+              {% endverbatim %}
+            </td>
+            <td>
+              {% verbatim %}
+              <div class="btn-group" ng-repeat="(metakey, metavalue) in rule.metadata" uib-dropdown
+                   ng-if="AccountCtrl.userIsOwnerOrAdmin()">
+                <button type="button"
+                        class="btn btn-default"
+                        uib-dropdown-toggle
+                        tooltip-placement="top"
+                        uib-tooltip="{{ metavalue }}">{{ metakey }}</button>
+                <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+                  <li role="menuitem">
+                    <a href ng-click="RuleCtrl.removeMetadata(rule, metakey)">Remove '{{ metakey }}' </a>
+                  </li>
+                </ul>
+              </div>
+
+              <button type="button"
+                      class="btn btn-default"
+                      tooltip-placement="top"
+                      uib-tooltip="{{ metavalue }}"
+                      ng-repeat="(metakey, metavalue) in rule.metadata"
+                      ng-if="AccountCtrl.userIsOwnerOrAdmin() == false">{{ metakey }}
+              </button>
+              {% endverbatim %}
+            </td>
+            <td>
+              {% verbatim %}
+              <div class="btn-group" uib-dropdown keyboard-nav
+                   ng-if="AccountCtrl.userIsOwnerOrAdmin()">
+                <button type="button" class="btn btn-default" uib-dropdown-toggle>
+                  {{ rule.source }}
+                  <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+                  <li role="menuitem" ng-repeat="source_name in StatsCtrl.stats.source_options">
+                    <a href ng-click="RuleCtrl.updateRule(rule, {'source': source_name})">{{ source_name }}</a>
+                  </li>
+                </ul>
+              </div>
+
+              <button type="button"
+                      class="btn btn-default" disabled
+                      ng-if="AccountCtrl.userIsOwnerOrAdmin() == false">
+                {{ rule.source }}
+              </button>
+              {% endverbatim %}
+            </td>
+            <td>
+              {% verbatim %}
+              <div class="btn-group" uib-dropdown keyboard-nav
+                   ng-if="AccountCtrl.userIsOwnerOrAdmin()">
+                <button type="button" class="btn btn-default" uib-dropdown-toggle>
+                  {{ rule.category }}
+                  <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+                  <li role="menuitem" ng-repeat="category_name in StatsCtrl.stats.category_options">
+                    <a href ng-click="RuleCtrl.updateRule(rule, {'category': category_name})">{{ category_name }}</a>
+                  </li>
+                </ul>
+              </div>
+
+                <button type="button"
+                        class="btn btn-default" disabled
+                        ng-if="AccountCtrl.userIsOwnerOrAdmin() == false">
+                  {{ rule.category }}
+                </button>
+              {% endverbatim %}
+            </td>
+            <td>
+                {% verbatim %}
+                <div class="btn-group" uib-dropdown
+                     ng-if="AccountCtrl.userIsOwnerOrAdmin()">
+
+                  <button type="button" class="btn btn-success" ng-if="rule.status == 'active'" uib-dropdown-toggle>
+                    <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+                  </button>
+
+                  <button type="button" class="btn btn-warning" ng-if="rule.status == 'inactive'" uib-dropdown-toggle>
+                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                  </button>
+
+                  <button type="button" class="btn btn-info" ng-if="rule.status == 'pending'" uib-dropdown-toggle>
+                    <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
+                  </button>
+
+                  <button type="button" class="btn btn-danger" ng-if="rule.status == 'rejected'" uib-dropdown-toggle>
+                    <span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>
+                  </button>
+
+                  <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+                    <li ng-repeat="status in ['active', 'inactive', 'pending', 'rejected']"
+                        ng-if="rule.status != status" role="menuitem">
+                      <a href ng-click="RuleCtrl.updateRule(rule, {'status': status})">Set rule as {{ status }}</a>
+                    </li>
+                  </ul>
+                </div>
+                {% endverbatim %}
+                <div ng-if="AccountCtrl.userIsOwnerOrAdmin() == false">
+                  <button type="button" class="btn btn-success" ng-if="rule.status == 'active'" disabled>
+                    <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+                  </button>
+
+                  <button type="button" class="btn btn-warning" ng-if="rule.status == 'inactive'" disabled>
+                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                  </button>
+
+                  <button type="button" class="btn btn-info" ng-if="rule.status == 'pending'" disabled>
+                    <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
+                  </button>
+
+                  <button type="button" class="btn btn-danger" ng-if="rule.status == 'rejected'" disabled>
+                    <span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>
+                  </button>
+                </div>
+            </td>
+
+            <td>
+              <button type="button" class="btn btn-sm btn-primary" ng-click="RuleCtrl.showComments(rule)">
+                {% verbatim %}
+                  <span class="glyphicon glyphicon-comment" aria-hidden="true"></span> {{ rule.comments.length }}
+                {% endverbatim %}
+              </button>
+            </td>
+            <td>
+              <div class="btn-group" uib-dropdown
+                   ng-if="AccountCtrl.userIsOwnerOrAdmin()">
+
+                <button type="button" class="btn btn-danger" uib-dropdown-toggle>
+                  <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+                </button>
+
+                <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+                  <li>
+                    <a href ng-click="RuleCtrl.deleteRule(rule)">Delete rule</a>
+                  </li>
+                </ul>
+              </div>
+
+              <button type="button" class="btn btn-danger" disabled
+                      ng-if="AccountCtrl.userIsOwnerOrAdmin() == false">
+                <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,32 @@
+{% load staticfiles %}
+
+<html>
+  <head lang="en">
+    <meta charset="utf-8">
+    <title>
+      {% block TITLE %}{% endblock TITLE %}
+    </title>
+
+    {% include 'Stylesheets.html' %}
+
+    {% block ADDITIONAL_STYLESHEETS %}
+    {% endblock ADDITIONAL_STYLESHEETS %}
+  </head>
+
+  <body>
+    {% block BODY_CONTENT %}
+    {% endblock BODY_CONTENT %}
+
+    {% include 'Javascripts.html' %}
+
+    {% block ADDITIONAL_JAVASCRIPT %}
+    {% endblock ADDITIONAL_JAVASCRIPT %}
+  </body>
+
+  <footer id="BottomNavigation">
+    <div class="container">
+      {% block FOOTER_CONTENT %}
+      {% endblock FOOTER_CONTENT %}
+    </div>
+  </footer>
+</html>

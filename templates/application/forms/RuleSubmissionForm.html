@@ -1,0 +1,135 @@
+<form ng-cloak enctype="multipart/form-data" ng-controller="RuleSubmitController as SubmitCtrl" ng-submit="SubmitCtrl.submitForm()">
+  <div class="panel panel-default">
+
+    <div class="panel-body">
+
+      <uib-progressbar class="progress-striped active" ng-show="SubmitCtrl.metaDisplay.loading == true" value="100" type="warning">
+        UPLOAD IN PROGRESS
+      </uib-progressbar>
+
+      <div class="row">
+        <div class="col-md-3">
+
+          <label>File Upload:</label>
+          <div class="input-group">
+            <label>
+              <span class="btn btn-sm btn-primary" ngf-select ngf-keep="true" ngf-multiple="true"
+                    ng-model="SubmitCtrl.fileObjects" ng-click="SubmitCtrl.clearFiles()"
+                    aria-label="Upload">Select Files
+              </span>
+            </label>
+            {% verbatim %}
+              <div ng-if="(SubmitCtrl.fileObjects.length > 0) && (SubmitCtrl.fileObjects.length < 5)">
+                <span ng-repeat="file in SubmitCtrl.fileObjects">
+                  {{ file.name }}{{$last ? '' : ', '}}
+                </span>
+              </div>
+
+              <div ng-if="(SubmitCtrl.fileObjects.length > 0) && (SubmitCtrl.fileObjects.length >= 5)">
+                {{ SubmitCtrl.fileObjects.length }} Files Selected
+              </div>
+
+              <div ng-if="SubmitCtrl.fileObjects.length < 1">
+                No Files Selected
+              </div>
+            {% endverbatim %}
+          </div>
+
+          <br>
+          <label>Source:</label>
+          <div class="input-group">
+            <am-multiselect
+                name="source"
+                ng-model="SubmitCtrl.formData.source"
+                options="c for c in StatsCtrl.stats.source_options">
+            </am-multiselect>
+          </div>
+
+          <br>
+          <label>Category:</label>
+          <div class="input-group">
+            <am-multiselect
+                name="category"
+                ng-model="SubmitCtrl.formData.category"
+                options="c for c in StatsCtrl.stats.category_options">
+            </am-multiselect>
+          </div>
+
+          <br>
+          <div class="input-group" ng-if="AccountCtrl.userIsOwnerOrAdmin()">
+            <input type="checkbox" name="active" ng-model="SubmitCtrl.formData.active">
+            <span> Set Active</span>
+          </div>
+        </div>
+
+        <div class="col-md-9 container">
+          <div class="row">
+            <div class="col-md-4 container">
+              <label>Add Tags</label>
+              <div class="input-group">
+                <label class="input-group-addon">
+                  <span class="glyphicon glyphicon-menu-right"></span>
+                </label>
+                <input type="text" class="form-control" ng-model="SubmitCtrl.formData.add_tags">
+              </div>
+            </div>
+
+            <div class="col-md-4 container">
+              <label>Prepend Name</label>
+              <div class="input-group">
+                <label class="input-group-addon">
+                  <span class="glyphicon glyphicon-menu-right"></span>
+                </label>
+                <input type="text" class="form-control" ng-model="SubmitCtrl.formData.prepend_name">
+              </div>
+            </div>
+
+            <div class="col-md-4 container">
+              <label>Append Name</label>
+              <div class="input-group">
+                <label class="input-group-addon">
+                  <span class="glyphicon glyphicon-menu-right"></span>
+                </label>
+                <input type="text" class="form-control" ng-model="SubmitCtrl.formData.append_name">
+              </div>
+            </div>
+          </div>
+
+          <br>
+
+          <div class="row">
+            <div class="col-md-12">
+              <div class="row">
+                <div class="col-md-12">
+                  <label>Add Metadata:</label>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-4">
+                  <div class="input-group">
+                    <label class="input-group-addon">Key</label>
+                    <input type="text" class="form-control" placeholder="Metadata Key" ng-model="SubmitCtrl.setMetadata.key">
+                  </div>
+                </div>
+
+                <div class="col-md-8">
+                  <div class="input-group">
+                    <label class="input-group-addon">Value</label>
+                    <input type="text" class="form-control" placeholder="Metadata Value" ng-model="SubmitCtrl.setMetadata.value">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <hr>
+      <div class="row">
+        <center>
+          <input type="submit" class="btn btn-primary" value="Submit rules">
+        </center>
+      </div>
+    </div>
+  </div>
+</form>

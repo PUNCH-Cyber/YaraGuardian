@@ -1,0 +1,12 @@
+*.pyc
+*.log
+*.lock
+.DS_Store
+.pyenv
+.vagrant
+
+npm
+logs
+static
+node_modules
+plyara/build/*

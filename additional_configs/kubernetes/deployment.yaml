@@ -1,0 +1,99 @@
+piVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: yara-guardian
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        environment: production
+        app: yara-guardian
+        tier: API
+    spec:
+      containers:
+      - name: yara-guardian
+        image: us.gcr.io/[PROJECT_ID]/yara-guardian:latest
+        env:
+          - name: SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: yara-guardian-secrets
+                key: SECRET_KEY
+
+          - name: ALLOWED_HOSTS
+            valueFrom:
+              secretKeyRef:
+                name: yara-guardian-secrets
+                key: ALLOWED_HOSTS
+
+          - name: DATABASE_NAME
+            valueFrom:
+              secretKeyRef:
+                name: yara-guardian-secrets
+                key: DATABASE_NAME
+
+          - name: DATABASE_USER
+            valueFrom:
+              secretKeyRef:
+                name: yara-guardian-secrets
+                key: DATABASE_USER
+
+          - name: DATABASE_PASS
+            valueFrom:
+              secretKeyRef:
+                name: yara-guardian-secrets
+                key: DATABASE_PASS
+
+          - name: EMAIL_USER
+            valueFrom:
+              secretKeyRef:
+                name: yara-guardian-secrets
+                key: EMAIL_USER
+
+          - name: EMAIL_PASS
+            valueFrom:
+              secretKeyRef:
+                name: yara-guardian-secrets
+                key: EMAIL_PASS
+
+          - name: GOOGLE_OAUTH2_KEY
+            valueFrom:
+              secretKeyRef:
+                name: yara-guardian-secrets
+                key: GOOGLE_OAUTH2_KEY
+
+          - name: GOOGLE_OAUTH2_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: yara-guardian-secrets
+                key: GOOGLE_OAUTH2_SECRET
+
+          - name: GOOGLE_WHITELISTED_DOMAINS
+            valueFrom:
+              secretKeyRef:
+                name: yara-guardian-secrets
+                key: GOOGLE_WHITELISTED_DOMAINS
+
+      - name: cloudsql-proxy
+        image: b.gcr.io/cloudsql-docker/gce-proxy:1.08
+        command: ["/cloud_sql_proxy", "--dir=/cloudsql",
+                  "-instances=[PROJECT_ID]:[PROJECT_REGION]:yara-guardian-db=tcp:5432",
+                  "-credential_file=/secrets/cloudsql/credentials.json"]
+        volumeMounts:
+          - name: yara-guardian-cloudsql-oauth-credentials
+            mountPath: /secrets/cloudsql
+            readOnly: true
+          - name: ssl-certs
+            mountPath: /etc/ssl/certs
+          - name: cloudsql
+            mountPath: /cloudsql
+      volumes:
+        - name: yara-guardian-cloudsql-oauth-credentials
+          secret:
+            secretName: yara-guardian-cloudsql-oauth-credentials
+        - name: ssl-certs
+          hostPath:
+            path: /etc/ssl/certs
+        - name: cloudsql
+          emptyDir:

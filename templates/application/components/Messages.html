@@ -1,0 +1,5 @@
+{% verbatim %}
+<div class="container" ng-controller="MessageController" id="MessageAlerts">
+	<div uib-alert ng-repeat="alert in messages" ng-class="'alert-' + (alert.type || 'warning')" close="closeAlert($index)">{{ alert.message }}</div>
+</div>
+{% endverbatim %}

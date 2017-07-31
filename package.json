@@ -1,0 +1,31 @@
+{
+  "name": "yara-guardian",
+  "description": "Django web interface for managing Yara rules",
+  "dependencies": {
+    "angular": "1.5.8",
+    "angular-route": "1.5.8",
+    "angular-animate": "1.5.8",
+    "angular-touch": "1.5.8",
+    "angular-ui-bootstrap": "2.5.0",
+    "angular-multiselect": "1.2.0",
+    "bootstrap": "3.3.7",
+    "angular-file-upload-shim": "^1.6.4",
+    "ng-file-upload": "^12.2.13"
+  },
+  "devDependencies": {
+    "copy-webpack-plugin": "^4.0.1",
+    "webpack": "~3.4.0"
+  },
+  "scripts": {
+    "webpack": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PUNCH-Cyber/YaraGuardian"
+  },
+  "bugs": {
+    "url": "https://github.com/PUNCH-Cyber/YaraGuardian/issues"
+  },
+  "author": "@taskr",
+  "license": "Apache-2.0"
+}

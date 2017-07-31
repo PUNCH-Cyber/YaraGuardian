@@ -1,0 +1,272 @@
+{% verbatim %}
+<form ng-submit="SearchCtrl.performFormSearch()">
+  <div class="panel panel-default">
+
+    <div class="panel-body">
+      <div class="row">
+        <div class="col-md-3">
+          <label>Filter by Source:</label>
+          <div class="input-group">
+            <am-multiselect
+                multiple="true"
+                ng-model="SearchCtrl.filterValues.source"
+                options="c for c in StatsCtrl.stats.source_options">
+            </am-multiselect>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <label>Filter by Category:</label>
+          <div class="input-group">
+            <am-multiselect
+                multiple="true"
+                ng-model="SearchCtrl.filterValues.category"
+                options="c for c in StatsCtrl.stats.category_options">
+            </am-multiselect>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <label>Filter by Submitter:</label>
+          <div class="input-group">
+            <am-multiselect
+                multiple="true"
+                ng-model="SearchCtrl.filterValues.submitter"
+                options="c for c in StatsCtrl.stats.submitter_list">
+            </am-multiselect>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <label>Filter by Status:</label>
+          <div class="input-group">
+            <am-multiselect
+                ng-model="SearchCtrl.formData.status"
+                options="c for c in ['active', 'inactive']">
+            </am-multiselect>
+          </div>
+        </div>
+      </div>
+
+      <hr>
+      <div class="row">
+        <div class="col-md-3">
+          <label>
+    		    <span uib-dropdown on-toggle="toggled(open)">
+    		      <a href id="simple-dropdown" uib-dropdown-toggle>Filter by Tags:</a>
+    		      <span class="label label-primary">{{ SearchCtrl.filterSelections.tag.label }}</span>
+    		      <ul class="dropdown-menu" uib-dropdown-menu aria-labelledby="simple-dropdown">
+    		        <li>
+    		          <a href ng-repeat="option in SearchCtrl.tagFilterOptions" ng-click="SearchCtrl.filterSelections.tag=option">{{ option.display }}</a>
+    		        </li>
+    		      </ul>
+    		    </span>
+          </label>
+          <div class="input-group">
+            <am-multiselect
+                multiple="true"
+                ng-model="SearchCtrl.filterValues.tag"
+                options="c for c in StatsCtrl.stats.tag_list">
+            </am-multiselect>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <label>
+    		    <span uib-dropdown on-toggle="toggled(open)">
+    		      <a href id="simple-dropdown" uib-dropdown-toggle>Filter by Metakeys:</a>
+    		      <span class="label label-primary">{{ SearchCtrl.filterSelections.metakey.label }}</span>
+    		      <ul class="dropdown-menu" uib-dropdown-menu aria-labelledby="simple-dropdown">
+    		        <li>
+    		          <a href ng-repeat="option in SearchCtrl.metakeyFilterOptions" ng-click="SearchCtrl.filterSelections.metakey=option">{{ option.display }}</a>
+    		        </li>
+    		      </ul>
+    		    </span>
+          </label>
+          <div class="input-group">
+            <am-multiselect
+                multiple="true"
+                ng-model="SearchCtrl.filterValues.metakey"
+                options="c for c in StatsCtrl.stats.metakey_list">
+            </am-multiselect>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <label>
+    		    <span uib-dropdown on-toggle="toggled(open)">
+    		      <a href id="simple-dropdown" uib-dropdown-toggle>Filter by Scopes:</a>
+    		      <span class="label label-primary">{{ SearchCtrl.filterSelections.scope.label }}</span>
+    		      <ul class="dropdown-menu" uib-dropdown-menu aria-labelledby="simple-dropdown">
+    		        <li>
+    		          <a href ng-repeat="option in SearchCtrl.scopeFilterOptions" ng-click="SearchCtrl.filterSelections.scope=option">{{ option.display }}</a>
+    		        </li>
+    		      </ul>
+    		    </span>
+          </label>
+          <div class="input-group">
+            <am-multiselect
+                multiple="true"
+                ng-model="SearchCtrl.filterValues.scope"
+                options="c for c in StatsCtrl.stats.scope_list">
+            </am-multiselect>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <label>
+    		    <span uib-dropdown on-toggle="toggled(open)">
+    		      <a href id="simple-dropdown" uib-dropdown-toggle>Filter by Imports:</a>
+    		      <span class="label label-primary">{{ SearchCtrl.filterSelections.import.label }}</span>
+    		      <ul class="dropdown-menu" uib-dropdown-menu aria-labelledby="simple-dropdown">
+    		        <li>
+    		          <a href ng-repeat="option in SearchCtrl.importFilterOptions" ng-click="SearchCtrl.filterSelections.import=option">{{ option.display }}</a>
+    		        </li>
+    		      </ul>
+    		    </span>
+          </label>
+          <div class="input-group">
+            <am-multiselect
+                multiple="true"
+                ng-model="SearchCtrl.filterValues.import"
+                options="c for c in StatsCtrl.stats.import_list">
+            </am-multiselect>
+          </div>
+        </div>
+      </div>
+
+      <hr>
+      <div class="row">
+        <div class="col-md-3">
+          <label>
+    		    <span uib-dropdown on-toggle="toggled(open)">
+    		      <a href id="simple-dropdown" uib-dropdown-toggle>Search Rule Name:</a>
+    		      <span class="label label-primary">{{ SearchCtrl.searchSelections.name.label }}</span>
+    		      <ul class="dropdown-menu" uib-dropdown-menu aria-labelledby="simple-dropdown">
+    		        <li>
+    		          <a href ng-repeat="option in SearchCtrl.nameSearchOptions" ng-click="SearchCtrl.searchSelections.name=option">{{ option.display }}</a>
+    		        </li>
+    		      </ul>
+    		    </span>
+          </label>
+          <div class="input-group">
+		    <input type="text" class="form-control" ng-model="SearchCtrl.searchValues.name">
+		  </div>
+        </div>
+
+        <div class="col-md-3">
+          <label>
+    		    <span uib-dropdown on-toggle="toggled(open)">
+    		      <a href id="simple-dropdown" uib-dropdown-toggle>Search Metakey Name:</a>
+    		      <span class="label label-primary">{{ SearchCtrl.searchSelections.metakey.label }}</span>
+    		      <ul class="dropdown-menu" uib-dropdown-menu aria-labelledby="simple-dropdown">
+    		        <li>
+    		          <a href ng-repeat="option in SearchCtrl.metakeySearchOptions" ng-click="SearchCtrl.searchSelections.metakey=option">{{ option.display }}</a>
+    		        </li>
+    		      </ul>
+    		    </span>
+          </label>
+          <div class="input-group">
+    		    <input type="text" class="form-control" ng-model="SearchCtrl.searchValues.metakey">
+    		  </div>
+        </div>
+
+        <div class="col-md-3">
+          <label>
+    		    <span uib-dropdown on-toggle="toggled(open)">
+    		      <a href id="simple-dropdown" uib-dropdown-toggle>Search Metadata Content:</a>
+    		      <span class="label label-primary">{{ SearchCtrl.searchSelections.metadata.label }}</span>
+    		      <ul class="dropdown-menu" uib-dropdown-menu aria-labelledby="simple-dropdown">
+    		        <li>
+    		          <a href ng-repeat="option in SearchCtrl.metadataSearchOptions" ng-click="SearchCtrl.searchSelections.metadata=option">{{ option.display }}</a>
+    		        </li>
+    		      </ul>
+    		    </span>
+          </label>
+          <div class="input-group">
+  		      <input type="text" class="form-control" ng-model="SearchCtrl.searchValues.metadata">
+  		    </div>
+        </div>
+
+        <div class="col-md-3">
+          <label>Show Only Tagged Rules</label>
+          <input type="checkbox" name="tagged" ng-model="SearchCtrl.show_tagged_rules">
+
+          <label>Show Only Untagged Rules</label>
+          <input type="checkbox" name="untagged" ng-model="SearchCtrl.show_untagged_rules">
+        </div>
+
+      </div>
+
+      <hr>
+      <div class="row">
+        <div class="col-md-3">
+          <label>Created Before:</label>
+	      <div class="input-group">
+            <span class="input-group-btn">
+              <button type="button" class="btn btn-default" ng-click="SearchCtrl.openCreatedBefore()">
+                <i class="glyphicon glyphicon-calendar"></i>&nbsp
+              </button>
+            </span>
+	        <input type="text" class="form-control" uib-datepicker-popup="{{SearchCtrl.dateFormat}}" is-open="SearchCtrl.dateInputOpened.created_before" ng-model="SearchCtrl.formData.created_before" />
+	      </div>
+        </div>
+
+        <div class="col-md-3">
+          <label>Created After:</label>
+	      <div class="input-group">
+            <span class="input-group-btn">
+              <button type="button" class="btn btn-default" ng-click="SearchCtrl.openCreatedAfter()">
+                <i class="glyphicon glyphicon-calendar"></i>&nbsp
+              </button>
+            </span>
+	        <input type="text" class="form-control" uib-datepicker-popup="{{ SearchCtrl.dateFormat }}" is-open="SearchCtrl.dateInputOpened.created_after" ng-model="SearchCtrl.formData.created_after" />
+	      </div>
+        </div>
+
+        <div class="col-md-3">
+          <label>Modified Before:</label>
+  	      <div class="input-group">
+              <span class="input-group-btn">
+                <button type="button" class="btn btn-default" ng-click="SearchCtrl.openModifiedBefore()">
+                  <i class="glyphicon glyphicon-calendar"></i>&nbsp
+                </button>
+              </span>
+  	        <input type="text" class="form-control" uib-datepicker-popup="{{ SearchCtrl.dateFormat }}" is-open="SearchCtrl.dateInputOpened.modified_before" ng-model="SearchCtrl.formData.modified_before" />
+  	      </div>
+        </div>
+
+        <div class="col-md-3">
+          <label>Modified After:</label>
+          <div class="input-group">
+            <span class="input-group-btn">
+              <button type="button" class="btn btn-default" ng-click="SearchCtrl.openModifiedAfter()">
+                <i class="glyphicon glyphicon-calendar"></i>&nbsp
+              </button>
+            </span>
+	        <input type="text" class="form-control" uib-datepicker-popup="{{ SearchCtrl.dateFormat }}" is-open="SearchCtrl.dateInputOpened.modified_after" ng-model="SearchCtrl.formData.modified_after" />
+	      </div>
+        </div>
+      </div>
+
+      <hr>
+      <div class="row">
+        <div class="col-md-4"></div>
+
+        <div class="col-md-4">
+          <label>Comments Contain:</label>
+          <input type="text" class="form-control" ng-model="SearchCtrl.formData.comment_contains">
+        </div>
+
+        <div class="col-md-4"></div>
+      </div>
+
+      <hr>
+      <div class="row text-center">
+        <input type="submit" class="btn btn-primary" value="Search">
+      </div>
+    </div>
+
+  </div>
+</form>
+{% endverbatim %}

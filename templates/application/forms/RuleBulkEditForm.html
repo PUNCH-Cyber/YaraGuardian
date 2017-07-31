@@ -1,0 +1,182 @@
+<form ng-submit="BulkCtrl.editRules()">
+  <div class="panel panel-default">
+    <div class="panel-body">
+      <div class="row">
+        <div class="col-md-4">
+          <label>Set Status:</label>
+          <div class="input-group">
+            <am-multiselect
+                ng-model="BulkCtrl.formData.update_status"
+                options="c for c in ['active', 'inactive', 'rejected']">
+            </am-multiselect>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <label>Set Source:</label>
+          <div class="input-group">
+            <am-multiselect
+                ng-model="BulkCtrl.formData.update_source"
+                options="c for c in StatsCtrl.stats.source_options">
+            </am-multiselect>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <label>Set Category:</label>
+          <div class="input-group">
+            <am-multiselect
+                ng-model="BulkCtrl.formData.update_category"
+                options="c for c in StatsCtrl.stats.category_options">
+            </am-multiselect>
+          </div>
+        </div>
+      </div>
+
+      <hr>
+      <div class="row">
+
+        <div class="col-md-4">
+          <label>Remove Tags:</label>
+          <div class="input-group">
+            <am-multiselect
+                multiple="true"
+                ng-model="BulkCtrl.formData.remove_tags"
+                options="c for c in StatsCtrl.stats.tag_list">
+            </am-multiselect>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <label>Remove Metadata:</label>
+          <div class="input-group">
+            <am-multiselect
+                multiple="true"
+                ng-model="BulkCtrl.formData.remove_metadata"
+                options="c for c in StatsCtrl.stats.metakey_list">
+            </am-multiselect>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <label>Remove Scopes</label>
+          <div class="input-group">
+            <am-multiselect
+                multiple="true"
+                ng-model="BulkCtrl.formData.remove_scopes"
+                options="c for c in StatsCtrl.stats.scope_list">
+            </am-multiselect>
+          </div>
+        </div>
+      </div>
+
+      <hr>
+      <div class="row">
+
+        <div class="col-md-4">
+          <label>Add Tags</label>
+          <div class="input-group">
+            <label class="input-group-addon">
+              <span class="glyphicon glyphicon-menu-right"></span>
+            </label>
+            <input type="text" class="form-control" ng-model="BulkCtrl.formData.add_tags">
+          </div>
+        </div>
+
+        {% verbatim %}
+        <div class="col-md-4">
+          <label>
+            <span uib-dropdown on-toggle="toggled(open)">
+              <a href uib-dropdown-toggle>Edit Name:</a>
+              <span class="label label-primary">{{ BulkCtrl.nameEditSelection.option.label }}</span>
+              <ul class="dropdown-menu" uib-dropdown-menu>
+                <li>
+                  <a href ng-repeat="option in BulkCtrl.nameEditOptions" ng-click="BulkCtrl.nameEditSelection.option=option">{{ option.display }}</a>
+                </li>
+              </ul>
+            </span>
+          </label>
+          <div class="input-group">
+            <label class="input-group-addon">
+              <span class="glyphicon glyphicon-menu-right"></span>
+            </label>
+            <input type="text" class="form-control" ng-model="BulkCtrl.nameEditSelection.value">
+          </div>
+        </div>
+        {% endverbatim %}
+
+        <div class="col-md-4">
+          {% verbatim %}
+          <label>
+            <span uib-dropdown on-toggle="toggled(open)">
+              <a href uib-dropdown-toggle>Edit Metadata:</a>
+              <span class="label label-primary">{{ BulkCtrl.metakeyEditSelection.option.label }}</span>
+              <ul class="dropdown-menu" uib-dropdown-menu>
+                <li>
+                  <a href ng-repeat="option in BulkCtrl.metakeyEditOptions" ng-click="BulkCtrl.metakeyEditSelection.option=option">{{ option.display }}</a>
+                </li>
+              </ul>
+            </span>
+          </label>
+          {% endverbatim %}
+          <div class="input-group">
+            <label class="input-group-btn">
+              <am-multiselect
+                  ng-model="BulkCtrl.metakeyEditSelection.key"
+                  options="c for c in StatsCtrl.stats.metakey_list">
+              </am-multiselect>
+            </label>
+            <input type="text" class="form-control" ng-model="BulkCtrl.metakeyEditSelection.value">
+          </div>
+        </div>
+      </div>
+
+      <hr>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="row">
+            <div class="col-md-12">
+              <label>Add Metadata:</label>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-4">
+              <div class="input-group">
+                <label class="input-group-addon">Key</label>
+                <input type="text" class="form-control" placeholder="Metadata Key" ng-model="BulkCtrl.setMetadata.key">
+              </div>
+            </div>
+
+            <div class="col-md-8">
+              <div class="input-group">
+                <label class="input-group-addon">Value</label>
+                <input type="text" class="form-control" placeholder="Metadata Value" ng-model="BulkCtrl.setMetadata.value">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <hr>
+      <div class="row">
+        <center>
+          <div class="col-md-1"></div>
+
+          <div class="col-md-5">
+            <input type="submit" class="btn btn-primary" value="Edit all search results"
+                   ng-click="BulkCtrl.setParams(SearchCtrl.search.query_params)">
+          </div>
+
+          <div class="col-md-5">
+            <input type="submit" class="btn btn-primary" value="Edit only selected rules"
+                   ng-click="BulkCtrl.setParams(BulkCtrl.generateSelectionParam())">
+          </div>
+
+          <div class="col-md-1"></div>
+        </center>
+      </div>
+
+    </div>
+  </div>
+
+</form>

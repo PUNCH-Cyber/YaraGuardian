@@ -1,0 +1,36 @@
+{% extends "components/ModalContent.html" %}
+
+{% block MODAL_IDENTIFIER %}
+  "ruleModalWrite.html"
+{% endblock MODAL_IDENTIFIER %}
+
+
+{% block MODAL_HEADER %}
+
+  {% verbatim %}
+    {{ ModalCtrl.rule.name }}
+  {% endverbatim %}
+
+{% endblock MODAL_HEADER %}
+
+
+{% block MODAL_BODY %}
+
+    {% verbatim %}
+      <div>
+        <textarea
+            rows=25
+            ng-model="ModalCtrl.formData.rule_content"
+            name="rule_content"
+            class="form-control">{{ ModalCtrl.rule.formatted_rule }}</textarea>
+      </div> 
+    {% endverbatim %}
+{% endblock MODAL_BODY %}   
+
+
+{% block MODAL_FOOTER %}
+  <center>
+    <button class="btn btn-primary" type="button" ng-click="ModalCtrl.update()">Update Rule</button>
+    <button class="btn btn-danger" type="button" ng-click="ModalCtrl.cancel()">Cancel</button>
+  </center>
+{% endblock MODAL_FOOTER %}

@@ -1,0 +1,29 @@
+sudo: enabled
+dist: trusty
+language: python
+python:
+  - 3.5
+
+services:
+  - postgresql
+
+addons:
+  postgresql: "9.6"
+
+env:
+  -DEBUG=True
+
+before_install:
+  - pip3 install -r requirements.txt
+
+install:
+  - cd plyara && python3 setup.py install
+
+before_script:
+  - psql -U postgres -d template1 -c "CREATE EXTENSION hstore;"
+  - psql -U postgres -c "CREATE DATABASE ${DATABASE_NAME};"
+  - psql -U postgres -c "CREATE USER ${DATABASE_USER} WITH PASSWORD '${DATABASE_PASS}' CREATEDB;"
+  - cd .. && python3 manage.py migrate
+
+script:
+  - python3 manage.py test

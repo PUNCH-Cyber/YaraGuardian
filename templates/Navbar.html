@@ -1,0 +1,69 @@
+{% load version from core_extras %}
+
+<nav id="TopNavigation" class="navbar navbar-inverse">
+  <div class="container-fluid">
+
+    <a class="navbar-brand" href="{% url 'Index' %}">
+      <span class="glyphicon glyphicon-home"></span> YaraGuardian {% version %}
+    </a>
+
+    <ul class="nav navbar-nav navbar-right">
+      <li uib-dropdown>
+        <a href uib-dropdown-toggle>
+          <span class="glyphicon glyphicon-user"></span>
+
+          <span ng-if="AccountCtrl.account.username == AccountCtrl.group.name">
+            {% verbatim %}
+              {{ AccountCtrl.account.username }}
+            {% endverbatim %}
+          </span>
+
+          <span ng-if="AccountCtrl.account.username != AccountCtrl.group.name">
+            {% verbatim %}
+              {{ AccountCtrl.account.username }} (Group: {{ AccountCtrl.group.name }})
+            {% endverbatim %}
+          </span>
+
+          <span class="caret"></span>
+        </a>
+
+        <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+          <li role="menuitem">
+            <a href ng-click="AccountCtrl.showAccountDetails()">
+              <span class="glyphicon glyphicon-user" aria-hidden="true"></span> Account Details
+            </a>
+          </li>
+
+          <li role="separator" class="divider" ng-if="AccountCtrl.account.available_groups.length > 1"></li>
+
+          <li role="menuitem"
+              ng-repeat="(group_name, group_details) in AccountCtrl.account.groups"
+              ng-if="group_name != AccountCtrl.group.name">
+            <a href ng-click="AccountCtrl.switchGroup(group_name)">
+              {% verbatim %}
+                <span class="glyphicon glyphicon-retweet"></span> Switch group ({{ group_name }})
+              {% endverbatim %}
+            </a>
+          </li>
+
+          {% if user.is_superuser %}
+          <li role="menuitem">
+            <a href="{% url 'admin:index' %}">
+              <span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> Admin Console
+            </a>
+          </li>
+          {% endif %}
+
+          <li role="separator" class="divider"></li>
+
+          <li role="menuitem">
+            <a href="{% url 'Logout' %}">
+              <span class="glyphicon glyphicon-log-out" aria-hidden="true"></span> Logout
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+
+  </div><!-- /.container-fluid -->
+</nav>

@@ -1,0 +1,243 @@
+{% verbatim %}
+<div class="panel panel-default">
+  <div class="panel-body" ng-controller="GroupManagementController as GroupCtrl">
+
+    <div class="row">
+      <div class="col-md-3">
+        <label>Add New Member:</label>
+        <div class="input-group">
+          <span class="input-group-btn">
+            <button class="btn btn-primary" type="button" ng-click="GroupCtrl.addMemberToGroup()">
+              <span class="glyphicon glyphicon-chevron-right"></span>&nbsp
+            </button>
+          </span>
+          <input type="text" class="form-control" ng-model="GroupCtrl.formData.memberSubmission">
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <label>Add New Source:</label>
+        <div class="input-group">
+          <span class="input-group-btn">
+            <button class="btn btn-primary" type="button" ng-click="GroupCtrl.addSourceToGroup()">
+              <span class="glyphicon glyphicon-chevron-right"></span>&nbsp
+            </button>
+          </span>
+          <input type="text" class="form-control" ng-model="GroupCtrl.formData.sourceSubmission">
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <label>Add New Category:</label>
+        <div class="input-group">
+          <span class="input-group-btn">
+            <button class="btn btn-primary" type="button" ng-click="GroupCtrl.addCategoryToGroup()">
+              <span class="glyphicon glyphicon-chevron-right"></span>&nbsp
+            </button>
+          </span>
+          <input type="text" class="form-control" ng-model="GroupCtrl.formData.categorySubmission">
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <label>Create New Group:</label>
+        <div class="input-group">
+          <span class="input-group-btn">
+            <button class="btn btn-primary" type="button" ng-click="GroupCtrl.createNewGroup()">
+              <span class="glyphicon glyphicon-chevron-right"></span>&nbsp
+            </button>
+          </span>
+          <input type="text" class="form-control" ng-model="GroupCtrl.formData.groupSubmission">
+        </div>
+      </div>
+    </div>
+
+    <hr>
+
+    <div class="row text-center">
+      <div class="col-md-2"></div>
+
+      <div class="col-md-3">
+        <button type="button" class="btn btn-danger"
+                ng-click="GroupCtrl.toggleCategory(true)"
+                ng-if="AccountCtrl.group.category_required == false">
+          <span class="glyphicon glyphicon glyphicon-cog"></span> Do Not Require Category
+        </button>
+
+        <button type="button" class="btn btn-success"
+                ng-click="GroupCtrl.toggleCategory(false)"
+                ng-if="AccountCtrl.group.category_required == true">
+          <span class="glyphicon glyphicon glyphicon-cog"></span> Require Category
+        </button>
+      </div>
+
+      <div class="col-md-2"></div>
+
+      <div class="col-md-3">
+        <button type="button" class="btn btn-danger"
+                ng-click="GroupCtrl.toggleSource(true)"
+                ng-if="AccountCtrl.group.source_required == false">
+          <span class="glyphicon glyphicon glyphicon-cog"></span> Do Not Require Source
+        </button>
+
+        <button type="button" class="btn btn-success"
+                ng-click="GroupCtrl.toggleSource(false)"
+                ng-if="AccountCtrl.group.source_required == true">
+          <span class="glyphicon glyphicon glyphicon-cog"></span> Require Source
+        </button>
+      </div>
+
+      <div class="col-md-2"></div>
+    </div>
+
+    <hr>
+
+    <div class="row">
+      <div class="col-md-4">
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Member Name</th>
+                <th>Membership</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr ng-repeat="(member_name, member_details) in AccountCtrl.group.members">
+                <td>
+                  <div class="btn-group" uib-dropdown>
+                    <span class="input-group-btn">
+                      <button class="btn btn-default" type="button"
+                              uib-dropdown-toggle ng-disabled="!AccountCtrl.userIsOwner() || member_details.membership == 'owner'">
+                        {{ member_name }}
+                        <span class="caret"></span>
+                      </button>
+                    </span>
+                    <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+                      <li ng-if="member_details.membership == 'member'">
+                        <a href ng-click="GroupCtrl.promoteMemberToAdmin(member_name)">Add to Admin</a>
+                      </li>
+
+                      <li ng-if="member_details.membership == 'admin'">
+                        <a href ng-click="GroupCtrl.demoteMemberFromAdmin(member_name)">Remove from Admin</a>
+                      </li>
+
+                      <li ng-if="member_details.membership != 'owner'">
+                        <a href ng-click="GroupCtrl.removeMemberFromGroup(member_name)">Remove from Group</a>
+                      </li>
+                    </ul>
+                  </div>
+                </td>
+                <td>{{ member_details.membership }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Source</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr ng-repeat="source_name in AccountCtrl.group.source_options">
+                <td>{{ source_name }}</td>
+                <td class="text-right">
+                  <div ng-if="AccountCtrl.userIsOwnerOrAdmin()" class="btn-group" uib-dropdown>
+                    <button type="button" class="btn btn-danger" uib-dropdown-toggle>
+                      <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+                    </button>
+                    <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+                      <li>
+                        <a href ng-click="GroupCtrl.removeSourceFromGroup(source_name)">Delete</a>
+                      </li>
+                    </ul>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr ng-repeat="category_name in AccountCtrl.group.category_options">
+                <td>{{ category_name }}</td>
+                <td class="text-right">
+                  <div ng-if="AccountCtrl.userIsOwnerOrAdmin()" class="btn-group" uib-dropdown>
+                    <button type="button" class="btn btn-danger" uib-dropdown-toggle>
+                      <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+                    </button>
+                    <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+                      <li>
+                        <a href ng-click="GroupCtrl.removeCategoryFromGroup(category_name)">Delete</a>
+                      </li>
+                    </ul>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <hr>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Group Name</th>
+                <th>My Membership</th>
+                <th>Member Count</th>
+                <th>Admin Count</th>
+                <th>Rule Count</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr ng-repeat="(group_name, group_details) in AccountCtrl.account.groups">
+                <td>{{ group_name }}</td>
+                <td>{{ group_details.membership }}</td>
+                <td>{{ group_details.member_count }}</td>
+                <td>{{ group_details.admin_count }}</td>
+                <td>{{ group_details.rule_count }}</td>
+                <td class="text-right">
+                  <div class="btn-group" ng-if="group_name != AccountCtrl.account.username" uib-dropdown>
+                    <button type="button" class="btn btn-danger" uib-dropdown-toggle>
+                      <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+                    </button>
+                    <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+                      <li>
+                        <a href ng-click="GroupCtrl.deleteGroup(group_name)">Delete</a>
+                      </li>
+                    </ul>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endverbatim %}
