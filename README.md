@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/PUNCH-Cyber/YaraGuardian.svg?branch=master)](https://travis-ci.org/PUNCH-Cyber/YaraGuardian)
+
 YaraGuardian
 ============
 A django web interface for managing Yara rules. The manager enables users to:
