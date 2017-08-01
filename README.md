@@ -201,3 +201,8 @@ Rule Access
 REST API Driven
 ---------------
 Uses Django REST Framework so you can automate or build a new UI for rule management. Endpoint documentation can be found at /API on a running instance of YaraGuardian.
+
+
+Contributing
+------------
+For those who are interested in contributing to YaraGuardian, please take a moment to look over the [contribution guidelines](./CONTRIBUTING.md).
