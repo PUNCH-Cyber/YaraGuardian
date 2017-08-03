@@ -241,6 +241,7 @@ if DEBUG:
 
     # Use fake mail backend for debugging
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    DEFAULT_FROM_EMAIL = retrieve_setting('DEFAULT_FROM_EMAIL', defaultset=True, defaultval='webmaster@localhost')
 
 else:
     # Email Settings

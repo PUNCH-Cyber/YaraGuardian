@@ -142,7 +142,8 @@ The following are the available configurable settings to be specified via enviro
 
   * DEFAULT_FROM_EMAIL
       - Email address to use for various automated correspondence
-      - Optional, defaults to 'webmaster@localhost'
+      - Optional, defaults to 'webmaster@localhost' in Debug mode
+      - Optional, defaults to EMAIL_USER setting value in Production mode
 
 
   * GOOGLE_OAUTH2_KEY
