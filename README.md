@@ -128,6 +128,23 @@ The following are the available configurable settings to be specified via enviro
       - Optional, defaults to 'True'
 
 
+  * EMAIL_SSL_CERTFILE
+      - Path to a PEM-formatted certificate chain file used for the SSL connection during SMTP server authentication
+      - Does not result in any certificate checking, just gets passed to the underlying SSL connection
+      - Optional, defaults to None
+
+
+  * EMAIL_SSL_KEYFILE
+      - Path to a PEM-formatted private key file used for the SSL connection during SMTP server authentication
+      - Does not result in any certificate checking, just gets passed to the underlying SSL connection
+      - Optional, defaults to None
+
+
+  * DEFAULT_FROM_EMAIL
+      - Email address to use for various automated correspondence
+      - Optional, defaults to 'webmaster@localhost'
+
+
   * GOOGLE_OAUTH2_KEY
       - Social authentication key for Google authentication
       - Optional, defaults to None

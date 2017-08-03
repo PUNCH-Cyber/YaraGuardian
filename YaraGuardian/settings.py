@@ -251,6 +251,15 @@ else:
     EMAIL_HOST = retrieve_setting('EMAIL_HOST', defaultset=True, defaultval='smtp.gmail.com')
     EMAIL_PORT = retrieve_setting('EMAIL_PORT', defaultset=True, defaultval='587')
 
+    # Specify email address to use for various automated correspondence
+    DEFAULT_FROM_EMAIL = retrieve_setting('DEFAULT_FROM_EMAIL', defaultset=True, defaultval='webmaster@localhost')
+
+    # Optionally specify the path to a PEM-formatted certificate chain file to use for the SSL connection
+    EMAIL_SSL_CERTFILE = retrieve_setting('EMAIL_SSL_CERTFILE', defaultset=True, defaultval=None)
+
+    # Optionally specify the path to a PEM-formatted private key file to use for the SSL connection
+    EMAIL_SSL_KEYFILE = retrieve_setting('EMAIL_SSL_KEYFILE', defaultset=True, defaultval=None)
+
 # Social Authentication Configurations
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = retrieve_setting('GOOGLE_OAUTH2_KEY', defaultset=True, defaultval=None)
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = retrieve_setting('GOOGLE_OAUTH2_SECRET', defaultset=True, defaultval=None)

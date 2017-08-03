@@ -56,7 +56,7 @@ class RegistrationToken(TimeStampedModel):
 
     def save(self, *args, **kwargs):
         subject = 'Registration'
-        from_email = settings.EMAIL_HOST_USER
+        from_email = settings.DEFAULT_FROM_EMAIL
         recipient_list = [self.email]
 
         # Grab templates

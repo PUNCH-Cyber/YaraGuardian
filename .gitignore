@@ -1,5 +1,6 @@
 *.pyc
 *.log
+*.egg
 *.lock
 .DS_Store
 .pyenv
@@ -10,3 +11,4 @@ logs
 static
 node_modules
 plyara/build/*
+plyara/plyara/parsetab.py
