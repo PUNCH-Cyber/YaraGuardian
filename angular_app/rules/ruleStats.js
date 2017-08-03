@@ -8,6 +8,7 @@ var app = angular.module('yaraGuardian.RuleStats', [
 app.factory('ruleStatService', function(apiService, coreServices) {
 
     var statMethods = {};
+
     statMethods.stats = {};
     statMethods.loading = false;
     statMethods.panelDisplays = {};
@@ -17,10 +18,18 @@ app.factory('ruleStatService', function(apiService, coreServices) {
         apiService.ruleStats(groupName, params).then(statRetrieveSuccess, statRetrieveFailure);
     };
 
+    statMethods.sortStat = function(statType, sortType) {
+      if (statType == 'tags') {
+        statMethods.panelDisplays.tags = buildStatPages(statMethods.stats.tag_count, 15, sortType);
+      } else if (statType == 'metakeys') {
+        statMethods.panelDisplays.metakeys = buildStatPages(statMethods.stats.metakey_count, 15, sortType);
+      };
+    };
+
     function statRetrieveSuccess(response) {
         coreServices.refreshObject(statMethods.stats, response.data);
-        statMethods.panelDisplays.tags = buildStatPages(statMethods.stats.tag_count, 15);
-        statMethods.panelDisplays.metakeys = buildStatPages(statMethods.stats.metakey_count, 15);
+        statMethods.sortStat('tags', 'nameForward');
+        statMethods.sortStat('metakeys', 'nameForward');
         statMethods.loading = false;
     };
 
@@ -28,7 +37,7 @@ app.factory('ruleStatService', function(apiService, coreServices) {
         statMethods.loading = false;
     };
 
-    function buildStatPages(statObj, pageSize) {
+    function buildStatPages(statObj, pageSize, sortType) {
         var entryCount = Object.keys(statObj).length;
         var maxPage = Math.ceil(entryCount / pageSize);
         var currentPage = 1;
@@ -41,6 +50,27 @@ app.factory('ruleStatService', function(apiService, coreServices) {
 
         var pageCounter = 1;
         var entryCounter = 0;
+
+        if (sortType == 'nameForward') {
+          statContent.sort(function(a, b) {
+            return a[0] > b[0] ? 1 : -1;
+          });
+
+        } else if (sortType == 'nameBackward') {
+          statContent.sort(function(a, b) {
+            return a[0] > b[0] ? 1 : -1;
+          }).reverse();
+
+        } else if (sortType == 'countForward') {
+          statContent.sort(function(a, b) {
+            return a[1] > b[1] ? 1 : -1;
+          });
+
+        } else if (sortType == 'countBackward') {
+          statContent.sort(function(a, b) {
+            return a[1] > b[1] ? 1 : -1;
+          }).reverse();
+        };
 
         while (pageCounter <= maxPage) {
             statPages[pageCounter] = statContent.slice(entryCounter, entryCounter + pageSize);
@@ -70,7 +100,35 @@ app.controller('RuleStatsController', function(accountService, ruleStatService) 
     self.panelDisplays = ruleStatService.panelDisplays;
 
     self.retrieveStats = function() {
-        ruleStatService.retrieveStats(accountService.groupContext.name);
+      ruleStatService.retrieveStats(accountService.groupContext.name);
+    };
+
+    // Tags Sorting
+    self.sortTagsAlpha = function() {
+      ruleStatService.sortStat('tags', 'nameForward');
+    };
+    self.sortTagsRevAlpha = function() {
+      ruleStatService.sortStat('tags', 'nameBackward');
+    };
+    self.sortTagsCount = function() {
+      ruleStatService.sortStat('tags', 'countForward');
+    };
+    self.sortTagsRevCount = function() {
+      ruleStatService.sortStat('tags', 'countBackward');
+    };
+
+    // Metakeys Sorting
+    self.sortMetakeysAlpha = function() {
+      ruleStatService.sortStat('metakeys', 'nameForward');
+    };
+    self.sortMetakeysRevAlpha = function() {
+      ruleStatService.sortStat('metakeys', 'nameBackward');
+    };
+    self.sortMetakeysCount = function() {
+      ruleStatService.sortStat('metakeys', 'countForward');
+    };
+    self.sortMetakeysRevCount = function() {
+      ruleStatService.sortStat('metakeys', 'countBackward');
     };
 
     self.changeTagDisplayPage = function(page) {

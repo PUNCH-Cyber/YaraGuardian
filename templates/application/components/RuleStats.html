@@ -140,6 +140,18 @@
       <div class="panel-heading">
         Tags
 
+        <div class="btn-group" uib-dropdown>
+          <button type="button" class="btn btn-sm btn-primary" uib-dropdown-toggle>
+            <span class="glyphicon glyphicon-sort"></span>
+          </button>
+          <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+            <li role="menuitem"><a href ng-click="StatsCtrl.sortTagsAlpha()">Sort Alphabetically</a></li>
+            <li role="menuitem"><a href ng-click="StatsCtrl.sortTagsRevAlpha()">Sort Reverse Alphabetically</a></li>
+            <li role="menuitem"><a href ng-click="StatsCtrl.sortTagsCount()">Sort by Count</a></li>
+            <li role="menuitem"><a href ng-click="StatsCtrl.sortTagsRevCount()">Sort by Reverse Count</a></li>
+          </ul>
+        </div>
+
         <p class="pull-right" ng-if="StatsCtrl.panelDisplays.tags.maxPage != 0">
           <a href ng-click="StatsCtrl.changeTagDisplayPage(StatsCtrl.panelDisplays.tags.currentPage - 1)"><span class="glyphicon glyphicon-chevron-left"></span></a>
           page {{ StatsCtrl.panelDisplays.tags.currentPage }} of {{ StatsCtrl.panelDisplays.tags.maxPage }}
@@ -164,6 +176,18 @@
     <div class="panel panel-primary">
       <div class="panel-heading">
         Metadata
+
+        <div class="btn-group" uib-dropdown>
+          <button type="button" class="btn btn-sm btn-primary" uib-dropdown-toggle>
+            <span class="glyphicon glyphicon-sort"></span>
+          </button>
+          <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+            <li role="menuitem"><a href ng-click="StatsCtrl.sortMetakeysAlpha()">Sort Alphabetically</a></li>
+            <li role="menuitem"><a href ng-click="StatsCtrl.sortMetakeysRevAlpha()">Sort Reverse Alphabetically</a></li>
+            <li role="menuitem"><a href ng-click="StatsCtrl.sortMetakeysCount()">Sort by Count</a></li>
+            <li role="menuitem"><a href ng-click="StatsCtrl.sortMetakeysRevCount()">Sort by Reverse Count</a></li>
+          </ul>
+        </div>
 
         <p class="pull-right" ng-if="StatsCtrl.panelDisplays.metakeys.maxPage != 0">
           <a href ng-click="StatsCtrl.changeMetakeyDisplayPage(StatsCtrl.panelDisplays.metakeys.currentPage - 1)"><span class="glyphicon glyphicon-chevron-left"></span></a>
