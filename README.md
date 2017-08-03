@@ -1,5 +1,4 @@
 [![Build Status](https://travis-ci.org/PUNCH-Cyber/YaraGuardian.svg?branch=master)](https://travis-ci.org/PUNCH-Cyber/YaraGuardian)
-
 [![Coverage Status](https://coveralls.io/repos/github/PUNCH-Cyber/YaraGuardian/badge.svg?branch=master)](https://coveralls.io/github/PUNCH-Cyber/YaraGuardian?branch=master)
 
 YaraGuardian
