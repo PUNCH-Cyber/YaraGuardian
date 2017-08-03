@@ -18,6 +18,7 @@ before_install:
 
 install:
   - cd plyara && python3 setup.py install
+  - pip3 install coveralls
 
 before_script:
   - psql -U postgres -d template1 -c "CREATE EXTENSION hstore;"
@@ -27,3 +28,6 @@ before_script:
 
 script:
   - python3 manage.py test
+  - coverage run --source=rules,core manage.py test
+
+after_success: coveralls
