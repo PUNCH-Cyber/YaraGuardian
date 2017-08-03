@@ -252,7 +252,7 @@ else:
     EMAIL_PORT = retrieve_setting('EMAIL_PORT', defaultset=True, defaultval='587')
 
     # Specify email address to use for various automated correspondence
-    DEFAULT_FROM_EMAIL = retrieve_setting('DEFAULT_FROM_EMAIL', defaultset=True, defaultval='webmaster@localhost')
+    DEFAULT_FROM_EMAIL = retrieve_setting('DEFAULT_FROM_EMAIL', defaultset=True, defaultval=EMAIL_HOST_USER)
 
     # Optionally specify the path to a PEM-formatted certificate chain file to use for the SSL connection
     EMAIL_SSL_CERTFILE = retrieve_setting('EMAIL_SSL_CERTFILE', defaultset=True, defaultval=None)
