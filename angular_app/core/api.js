@@ -118,6 +118,19 @@ app.factory('apiService', function($location, $http, $q, djangoUrl) {
         return deferred.promise;
     };
 
+    apiMethods.ruleDeconflictLogic = function(groupContext, params) {
+        var deferred = $q.defer();
+
+        var apiCall = {
+          method: 'PATCH',
+          url: djangoUrl.reverse('ruleset-deconflict', {'group_name': groupContext}),
+          params: params,
+        };
+
+        $http(apiCall).then(apiCallSuccess(deferred), apiCallError(deferred));
+        return deferred.promise;
+    };
+
     apiMethods.ruleRemoveTag = function(groupContext, ruleId, tag) {
         var deferred = $q.defer();
         var url = djangoUrl.reverse('rule-tags', {'group_name': groupContext, 'rule_pk': ruleId, 'tag': tag});

@@ -19,45 +19,21 @@
 
   <div class="btn-group" uib-dropdown
        ng-if="AccountCtrl.userIsOwnerOrAdmin()">
-    <button type="button" class="btn btn-sm btn-warning" uib-dropdown-toggle disabled>
+    <button type="button" class="btn btn-sm btn-warning" uib-dropdown-toggle>
       <span class="glyphicon glyphicon-random" aria-hidden="true"></span> Merge
       <span class="caret"></span>
     </button>
 
     <ul class="dropdown-menu" uib-dropdown-menu role="menu">
       <li role="menuitem">
-        <a href ng-click="BulkCtrl.mergeRules({}, 'newest')">
-          All Collisions (keep newest)
+        <a href ng-click="BulkCtrl.mergeRules({})">
+          All collisions
         </a>
       </li>
 
       <li role="menuitem">
-        <a href ng-click="BulkCtrl.mergeRules({}, 'oldest')">
-          All Collisions (keep oldest)
-        </a>
-      </li>
-
-      <li role="menuitem">
-        <a href ng-click="BulkCtrl.mergeRules(SearchCtrl.search.query_params, 'newest')">
-          Search Results (keep newest)
-        </a>
-      </li>
-
-      <li role="menuitem">
-        <a href ng-click="BulkCtrl.mergeRules(SearchCtrl.search.query_params, 'oldest')">
-         Search Results (keep oldest)
-        </a>
-      </li>
-
-      <li role="menuitem">
-        <a href ng-click="BulkCtrl.mergeRules(BulkCtrl.generateSelectionParam(), 'newest')">
-          Selected Rules (keep newest)
-        </a>
-      </li>
-
-      <li role="menuitem">
-        <a href ng-click="BulkCtrl.mergeRules(BulkCtrl.generateSelectionParam(), 'oldest')">
-          Selected Rules (keep oldest)
+        <a href ng-click="BulkCtrl.mergeRules(SearchCtrl.search.query_params)">
+          Only collisions in search results
         </a>
       </li>
     </ul>
@@ -74,7 +50,7 @@
       <li role="menuitem"><a href ng-click="BulkCtrl.deleteRules({'status': 'inactive'})">Inactive rules</a></li>
       <li role="menuitem"><a href ng-click="BulkCtrl.deleteRules({'status': 'pending'})">Pending rules</a></li>
       <li role="menuitem"><a href ng-click="BulkCtrl.deleteRules({'status': 'rejected'})">Rejected rules</a></li>
-      <li role="menuitem"><a href ng-click="BulkCtrl.deleteRules(SearchCtrl.search.query_params)">Search results</a></li>
+      <li role="menuitem"><a href ng-click="BulkCtrl.deleteRules(SearchCtrl.search.query_params)">Rules in search results</a></li>
       <li role="menuitem"><a href ng-click="BulkCtrl.deleteRules(BulkCtrl.generateSelectionParam())">Only selected rules</a></li>
     </ul>
   </div>

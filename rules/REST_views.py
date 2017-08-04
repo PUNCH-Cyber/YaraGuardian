@@ -122,6 +122,27 @@ class RulesetStatsView(APIView):
         return Response(serializer.data)
 
 
+class RulesetDeconflictView(APIView):
+    """
+    Deconflict / Merge Logic Collisions
+    """
+    permission_classes = [IsGroupAdminOrReadOnly]
+
+    def patch(self, request, group_name):
+        group_context = get_group_or_404(group_name)
+
+        if request.query_params:
+            # Filter and deconflict based on query params
+            queryset = get_queryset(group_context, query_params=request.query_params)
+        else:
+            # Deconflict all
+            queryset = YaraRule.objects.filter(owner=group_context)
+
+        response_content = queryset.deconflict_logic()
+
+        return Response(response_content)
+
+
 class RulesetExportView(APIView):
     """
     Export rules

@@ -30,6 +30,12 @@ app.factory('messageService', function() {
         });
     };
 
+    messageMethods.processChanges = function(changesArray) {
+        angular.forEach(changesArray, function (msgContent) {
+            messageMethods.pushMessage(msgContent, 'success');
+        });
+    };
+    
     return messageMethods;
 });
 

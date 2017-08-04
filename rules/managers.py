@@ -3,7 +3,7 @@ from django.db.models.functions import Upper, Lower, Concat
 from django.db import models, IntegrityError
 
 from operator import itemgetter
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 
 from core.services import (generate_kwargs_from_parsed_rule,
                            process_extracted_comments,
@@ -468,6 +468,65 @@ class YaraRuleQueryset(models.query.QuerySet):
             CONCAT_HSTORE = Func(TEMP_HSTORE, META_HSTORE, function='hs_concat')
 
             self.update(metadata=CONCAT_HSTORE)
+
+    def deconflict_logic(self, update_feedback=None):
+        if not update_feedback:
+            update_feedback = { 'warnings': [], 'changes': [] }
+
+        deconflict_count = 0
+        logic_mapping = defaultdict(list)
+
+        # Group rules with same logic
+        for rule in self:
+            logic_mapping[rule.logic_hash].append(rule)
+
+        for logic_hash, rules in logic_mapping.items():
+            # Check if there was actually a collision
+            if len(rules) == 1:
+                continue
+
+            newrule = None
+
+            for rule in rules:
+                if not newrule:
+                    newrule = rule
+                else:
+                    for tag in rule.tags:
+                        if tag not in newrule.tags:
+                            newrule.tags.append(tag)
+
+                    for scope in rule.scopes:
+                        if scope not in newrule.scopes:
+                            newrule.scopes.append(scope)
+
+                    for imp in rule.imports:
+                        if imp not in newrule.imports:
+                            newrule.imports.append(imp)
+
+                    for key, value in rule.metadata.items():
+                        if key not in newrule.metadata:
+                            newrule.metadata[key] = value
+
+                    for comment in rule.yararulecomment_set.all():
+                        comment.rule = newrule
+                        comment.save()
+
+                    rule.delete()
+                    deconflict_count += 1
+
+            newrule.save()
+
+        if deconflict_count == 0:
+            update_feedback['warnings'].append('No rules to deconflict')
+
+        elif deconflict_count == 1:
+            update_feedback['changes'].append('Deconflicted 1 rule')
+
+        else:
+            msg = 'Deconflicted {} Rules'.format(deconflict_count)
+            update_feedback['changes'].append(msg)
+
+        return update_feedback
 
 
 class YaraRuleManager(models.Manager):

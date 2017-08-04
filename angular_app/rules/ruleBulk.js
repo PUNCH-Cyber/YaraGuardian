@@ -66,9 +66,9 @@ app.controller('RuleBulkController', function($httpParamSerializer, apiService, 
         self.download_url = '/API/rules/' + accountService.groupContext.name + '/export?' + qs;
     };
 
-    self.mergeRules = function(paramData, keepMethod) {
+    self.mergeRules = function(paramData) {
         messageService.clearMessages();
-        console.log(paramData);
+        apiService.ruleDeconflictLogic(accountService.groupContext.name, paramData).then(ruleMethodSuccess, ruleMethodFailure);
     };
 
     self.deleteRules = function(paramData) {
@@ -99,7 +99,7 @@ app.controller('RuleBulkController', function($httpParamSerializer, apiService, 
         messageService.pushMessage(updateMsg, 'success');
         messageService.processErrors(response.data['errors']);
         messageService.processWarnings(response.data['warnings']);
-        
+
         ruleSearchService.refreshSearch(accountService.groupContext.name);
         ruleStatService.retrieveStats(accountService.groupContext.name);
         clearForm();
@@ -110,6 +110,12 @@ app.controller('RuleBulkController', function($httpParamSerializer, apiService, 
         messageService.pushMessage(updateMsg, 'warning');
         ruleSearchService.refreshSearch(accountService.groupContext.name);
         ruleStatService.retrieveStats(accountService.groupContext.name);
+    };
+
+    function ruleMethodSuccess(response) {
+      messageService.processChanges(response.data['changes']);
+      messageService.processWarnings(response.data['warnings']);
+      ruleStatService.retrieveStats(accountService.groupContext.name);
     };
 
     function ruleMethodFailure(response) {
