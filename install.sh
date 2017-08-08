@@ -27,7 +27,7 @@ if [ "$1" = "vagrant" ]; then
 
     echo "export GUEST_REGISTRATION=INVITE" >> ${HOME_PROFILE}
 else
-    INSTALL_DIR="/usr/local/YaraGuardian"
+    INSTALL_DIR=${PWD}
 fi
 
 PYENV_PATH=${INSTALL_DIR}/.pyenv
