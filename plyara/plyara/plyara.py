@@ -47,8 +47,14 @@ class ParserInterpreter:
 
     comparison_operators = ('==', '!=', '>', '<', '>=', '<=')
 
-    import_options = ('pe', 'elf', 'cuckoo', 'magic',
-                      'hash', 'math', 'androguard')
+    import_options = ('pe',
+                      'elf',
+                      'cuckoo',
+                      'magic',
+                      'hash',
+                      'math',
+                      'dotnet',
+                      'androguard')
 
     keywords = ('all', 'and', 'any', 'ascii', 'at', 'condition',
                 'contains', 'entrypoint', 'false', 'filesize',
@@ -457,6 +463,11 @@ class YaraLexerModule(object):
         'LESSTHAN',
         'GREATEREQUAL',
         'LESSEQUAL',
+        'RIGHTBITSHIFT',
+        'LEFTBITSHIFT',
+        'MODULO',
+        'TILDE',
+        'XOR',
         'PERIOD',
         'COLON',
         'STAR',
@@ -530,6 +541,11 @@ class YaraLexerModule(object):
     t_LESSTHAN = r'<'
     t_GREATEREQUAL = r'>='
     t_LESSEQUAL = r'<='
+    t_RIGHTBITSHIFT = r'>>'
+    t_LEFTBITSHIFT = r'<<'
+    t_MODULO = r'%'
+    t_TILDE = r'~'
+    t_XOR = r'\^'
     t_PERIOD = r'\.'
     t_COLON = r':'
     t_STAR = r'\*'
@@ -827,6 +843,11 @@ class YaraParser(object):
                 | LESSTHAN
                 | GREATEREQUAL
                 | LESSEQUAL
+                | RIGHTBITSHIFT
+                | LEFTBITSHIFT
+                | MODULO
+                | TILDE
+                | XOR
                 | PERIOD
                 | COLON
                 | STAR
