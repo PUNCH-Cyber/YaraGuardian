@@ -5,6 +5,7 @@ import logging
 from django.core.management.base import BaseCommand, CommandError
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 
 from rules.models import YaraRule
 from core.services import parse_rule_submission
