@@ -194,13 +194,13 @@ Yara rule files can be ingested automatically using the following command line U
   - UploadDirectory: This command will recursively traverse specified directories and process all yara rule files present
       ~~~
       source .pyenv/bin/activate
-      python manage.py UploadDirectory {DIRECTORIES} --source={SOURCE} --category={CATEGORY} --user={USER}
+      python manage.py UploadDirectory {DIRECTORIES} --source={SOURCE} --category={CATEGORY} --user={USER} --group={GROUP}
       ~~~
 
   - UploadMasterFile: This command will process a master file and its associated imports
       ~~~
       source .pyenv/bin/activate
-      python manage.py UploadMasterFile {MASTERFILES} --source={SOURCE} --category={CATEGORY} --user={USER}
+      python manage.py UploadMasterFile {MASTERFILES} --source={SOURCE} --category={CATEGORY} --user={USER} --group={GROUP}
       ~~~
 
 
