@@ -32,30 +32,16 @@ class ParserInterpreter:
     alternative representation of Yara rules
     """
 
-    rules = deque()
-
-    currentRule = {}
-
-    stringModifiersAccumulator = []
-    importsAccumulator = []
-    includesAccumulator = []
-    termAccumulator = []
-    scopeAccumulator = []
-    tagAccumulator = []
-    commentAccumulator = []
-
-    isPrintDebug = False
-
     comparison_operators = ('==', '!=', '>', '<', '>=', '<=')
 
-    import_options = ('pe',
-                      'elf',
-                      'cuckoo',
-                      'magic',
-                      'hash',
-                      'math',
-                      'dotnet',
-                      'androguard')
+    modules = ('pe',
+               'elf',
+               'cuckoo',
+               'magic',
+               'hash',
+               'math',
+               'dotnet',
+               'androguard')
 
     keywords = ('all', 'and', 'any', 'ascii', 'at', 'condition',
                 'contains', 'entrypoint', 'false', 'filesize',
@@ -67,6 +53,25 @@ class ParserInterpreter:
                 'uint16be', 'uint32be', 'wide')
 
     function_keywords = ('uint8', 'uint16', 'uint32', 'uint8be', 'uint16be', 'uint32be')
+
+    def __init__(self, debug=False, additional_modules=None):
+        self.isPrintDebug = debug
+
+        self.rules = deque()
+        self.currentRule = {}
+
+        self.stringModifiersAccumulator = []
+        self.importsAccumulator = []
+        self.includesAccumulator = []
+        self.termAccumulator = []
+        self.scopeAccumulator = []
+        self.tagAccumulator = []
+        self.commentAccumulator = []
+
+        self.import_options = list(self.modules)
+
+        if additional_modules and isinstance(additional_modules, list):
+            self.import_options.extend(additional_modules)
 
     def reset(self):
         self.rules.clear()
@@ -81,8 +86,6 @@ class ParserInterpreter:
         self.tagAccumulator = []
         self.commentAccumulator = []
 
-        self.isPrintDebug = False
-
     def addElement(self, elementType, elementValue):
         """
         Accepts elements from the parser and uses them to
@@ -91,7 +94,10 @@ class ParserInterpreter:
 
         if elementType == ElementTypes.RULE_NAME:
             self.currentRule["rule_name"] = elementValue
+
             self.readAndResetAccumulators()
+            self.currentRule['imports'] = self.detectImports(self.currentRule)
+
             self.rules.append(self.currentRule)
 
             if self.isPrintDebug:
@@ -729,15 +735,19 @@ def yara_token_generator(data):
 
 class YaraParser(object):
 
-    parserInterpreter = ParserInterpreter()
+    def __init__(self, debug=False, additional_modules=None):
 
-    def __init__(self):
         self.tokens = YaraLexerModule.tokens
         self.lexer = lex.lex(module=YaraLexerModule())
 
-        self.parser = None  # attribute placeholder until build funct is called
-        self.parser_error = {} # attribute placeholder in case error encountered
+        self.parser = yacc.yacc(module=self, debug=debug)
+        self.parserInterpreter = ParserInterpreter(debug=debug,
+                                                   additional_modules=additional_modules)
 
+        # attribute placeholder in case error encountered
+        self.parser_error = {}
+
+        # Comments queue
         self.rule_comments = deque()
 
     def p_rules(self, p):
@@ -972,15 +982,7 @@ class YaraParser(object):
 
             raise TypeError(error_message)
 
-    # Build the parser
-    def build(self):
-        self.parser = yacc.yacc(module=self, debug=False)
-
     def run(self, raw_rules):
-        # Build parser if not done already
-        if not self.parser:
-            self.build()
-
         # Reset parser interpreter state
         self.parserInterpreter.reset()
 

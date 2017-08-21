@@ -1,11 +1,12 @@
 import logging
 from django.core.management.base import BaseCommand, CommandError
 
-from plyara import YaraParser
+from plyara import ParserInterpreter
 from rules.models import YaraRule
 
 # Configure Logging
 logging.basicConfig(level=logging.INFO)
+interp = ParserInterpreter()
 
 
 class Command(BaseCommand):
@@ -22,7 +23,7 @@ class Command(BaseCommand):
         for rule in corpus.iterator():
             rule_index += 1
             logic_data = {'strings': rule.strings, 'condition_terms': rule.condition}
-            logic_hash = YaraParser.parserInterpreter.generateLogicHash(logic_data)
+            logic_hash = interp.generateLogicHash(logic_data)
             rule.logic_hash = logic_hash
             rule.save()
             logging.info('Rule Logic Update: {} of {}'.format(rule_index, rule_count))

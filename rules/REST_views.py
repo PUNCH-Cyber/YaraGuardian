@@ -24,12 +24,16 @@ from core.services import (get_group_or_404,
                            check_lexical_convention,
                            StandardResultsSetPagination)
 
+from plyara import ParserInterpreter
+
 from .models import YaraRule, YaraRuleComment
 from .REST_filters import YaraRuleFilter
 
 from .REST_serializers import (YaraRuleSerializer,
                                YaraRuleStatsSerializer,
                                YaraRuleCommentSerializer)
+
+interp = ParserInterpreter()
 
 
 def get_queryset(group_context, query_params=None):
@@ -159,7 +163,7 @@ class RulesetExportView(APIView):
         temp_file = io.StringIO()
 
         # Build import search patterns
-        import_options = YaraParser.parserInterpreter.import_options
+        import_options = interp.import_options
         import_pattern = 'import \"(?:{})\"\n'.format('|'.join(import_options))
 
         # Specify metadata of file object

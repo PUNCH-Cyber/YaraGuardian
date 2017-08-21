@@ -11,7 +11,11 @@ import re
 import datetime
 
 import chardet
+
 from plyara import YaraParser
+from plyara import ParserInterpreter
+
+interp = ParserInterpreter()
 
 
 def get_group_or_404(group_name):
@@ -121,7 +125,7 @@ def parse_rule_submission(raw_submission):
 
 
 def check_lexical_convention(entry):
-    return YaraParser.parserInterpreter.isValidRuleName(entry)
+    return interp.isValidRuleName(entry)
 
 
 def generate_kwargs_from_parsed_rule(parsed_rule):
@@ -134,13 +138,13 @@ def generate_kwargs_from_parsed_rule(parsed_rule):
     condition = parsed_rule['condition_terms']
     imports = parsed_rule.get('imports', [])
     comments = parsed_rule.get('comments', [])
-    dependencies = YaraParser.parserInterpreter.detectDependencies(parsed_rule)
+    dependencies = interp.detectDependencies(parsed_rule)
 
     # Calculate hash value of rule strings and condition
-    logic_hash = YaraParser.parserInterpreter.generateLogicHash(parsed_rule)
+    logic_hash = interp.generateLogicHash(parsed_rule)
 
     # Ensure that the proper imports are added based on condition
-    detected_imports = YaraParser.parserInterpreter.detectImports(parsed_rule)
+    detected_imports = interp.detectImports(parsed_rule)
     imports.extend(detected_imports)
 
     # TEMP FIX - Use only a single instance of a metakey
