@@ -6,7 +6,7 @@ rule Text
         $text_string = "foobar"
 
     condition:
-       $text_string
+        $text_string
 }
 
 rule FullwordText
@@ -15,7 +15,7 @@ rule FullwordText
         $text_string = "foobar" fullword
 
     condition:
-       $text_string
+        $text_string
 }
 
 rule CaseInsensitiveText
@@ -33,13 +33,13 @@ rule WideCharText
         $wide_string = "Borland" wide
 
     condition:
-       $wide_string
+        $wide_string
 }
 
 rule WideCharAsciiText
 {
     strings:
-        $wide_and_ascii_string = "Borland" wide ascii
+       $wide_and_ascii_string = "Borland" wide ascii
 
     condition:
        $wide_and_ascii_string
@@ -75,10 +75,10 @@ rule HexAlternatives
 rule HexMultipleAlternatives
 {
     strings:
-       $hex_string = { F4 23 ( 62 B4 | 56 | 45 ?? 67 ) 45 }
+        $hex_string = { F4 23 ( 62 B4 | 56 | 45 ?? 67 ) 45 }
 
     condition:
-       $hex_string
+        $hex_string
 }
 
 rule RegExp
