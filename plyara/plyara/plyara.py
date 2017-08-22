@@ -354,12 +354,12 @@ class ParserInterpreter:
         for condition in conditions:
             # All string references (sort for consistency)
             if condition == 'them' or condition == '$*':
-                condition_mapping.append('<STRINGVALUES>' + ' | '.join(sorted_string_values))
+                condition_mapping.append('<STRINGVALUE>' + ' | '.join(sorted_string_values))
 
             elif condition.startswith('$') and condition != '$':
                 # Exact Match
                 if condition in string_mapping['named']:
-                    condition_mapping.append('<STRING>' + string_mapping['named'][condition])
+                    condition_mapping.append('<STRINGVALUE>' + string_mapping['named'][condition])
                 # Wildcard Match
                 elif '*' in condition:
                     wildcard_strings = []
@@ -371,7 +371,7 @@ class ParserInterpreter:
                             wildcard_strings.append(value)
 
                     wildcard_strings.sort()
-                    condition_mapping.append('<STRINGVALUES>' + ' | '.join(wildcard_strings))
+                    condition_mapping.append('<STRINGVALUE>' + ' | '.join(wildcard_strings))
                 else:
                     logging.error('[!] Unhandled String Condition {}'.format(condition))
 
