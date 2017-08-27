@@ -1,17 +1,14 @@
+import datetime
+
 from rest_framework import serializers
 from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 
-from .models import YaraRule, YaraRuleComment
-
-from core.services import (parse_rule_submission,
-                           generate_kwargs_from_parsed_rule,
-                           process_extracted_comments)
-                           
 from core.REST_serializers import PublicUserSerializer
 from core.REST_permissions import group_admin
 
-import datetime
+from .models import YaraRule, YaraRuleComment
+from .services import parse_rule_submission, generate_kwargs_from_parsed_rule
 
 
 class YaraRuleCommentSerializer(serializers.Serializer):
@@ -263,7 +260,7 @@ class YaraRuleSerializer(serializers.Serializer):
         new_rule.save()
 
         # Process extracted comments
-        process_extracted_comments(new_rule, rule_kwargs['comments'])
+        YaraRuleComment.objects.process_extracted_comments(new_rule, rule_kwargs['comments'])
 
         return new_rule
 
@@ -290,8 +287,8 @@ class YaraRuleSerializer(serializers.Serializer):
             # Update instance attributes from the generated keyword arguments
             for attr, value in rule_kwargs.items():
                 # Process extracted comments
-                if (attr == 'comments'):
-                    process_extracted_comments(instance, value)
+                if attr == 'comments':
+                    YaraRuleComment.objects.process_extracted_comments(instance, value)
                 else:
                     # Check for dependency breakage by comparing previous name with new one
                     if (attr == 'name') and (value != instance.name):

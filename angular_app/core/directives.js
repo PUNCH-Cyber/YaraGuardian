@@ -8,7 +8,7 @@ app.directive('ngFiles', function ($parse) {
         element.on('change', function (event) {
             onChange(scope, { $files: event.target.files });
         });
-    };
+    }
 
     return {link: fn_link};
 });

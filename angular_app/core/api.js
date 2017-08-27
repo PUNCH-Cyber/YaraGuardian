@@ -16,7 +16,7 @@ app.factory('apiService', function($location, $http, $q, djangoUrl) {
     };
 
     var apiCallError = function (deferred) {
-      return function (response) {deferred.reject(response.data.detail)}
+      return function (response) {deferred.reject(response)}
     };
 
     apiMethods.getURL = function(URL) {
@@ -24,9 +24,9 @@ app.factory('apiService', function($location, $http, $q, djangoUrl) {
         var protocol = $location.protocol();
 
         // Proxy handling
-        if (protocol == 'https' && !(URL.startsWith('https'))) {
+        if (protocol === 'https' && !(URL.startsWith('https'))) {
           URL = URL.replace("http", "https");
-        };
+        }
 
         $http.get(URL, {'Cache-Control': 'no-cache'}).then(apiCallSuccess(deferred), apiCallError(deferred));
         return deferred.promise;

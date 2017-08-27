@@ -1,42 +1,34 @@
-import io
-import re
 
-from plyara import YaraParser
+import re
 
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-from django_filters import rest_framework as filters
 
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView, CreateAPIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import permission_classes
+from rest_framework.pagination import PageNumberPagination
+
+from core.services import get_group_or_404
 
 from core.REST_permissions import (IsGroupMember,
                                    IsGroupAdminOrReadOnly,
                                    IsGroupAdminOrAddMethod,
                                    group_admin)
 
-from core.services import (get_group_or_404,
-                           parse_rule_submission,
-                           check_lexical_convention,
-                           StandardResultsSetPagination)
-
-from plyara import ParserInterpreter
-
-from .models import YaraRule, YaraRuleComment
 from .REST_filters import YaraRuleFilter
+from .models import YaraRule
+from .services import build_yarafile, parse_rule_submission
 
 from .REST_serializers import (YaraRuleSerializer,
                                YaraRuleStatsSerializer,
                                YaraRuleCommentSerializer)
 
-interp = ParserInterpreter()
-
 
 def get_queryset(group_context, query_params=None):
+
     queryset = YaraRule.objects.filter(owner=group_context)
 
     if query_params:
@@ -58,6 +50,35 @@ def paginate_queryset(queryset, view, serializer_class=None):
 
     serializer = serializer_class(queryset, many=True)
     return Response(serializer.data)
+
+
+class RuleSetPagination(PageNumberPagination):
+    page_size = 50
+    page_size_query_param = 'page_size'
+    max_page_size = 1000
+
+    def get_paginated_response(self, data):
+        # Populate non-page-related query params for reference
+        query_params = {}
+
+        for key, value in self.request.query_params.items():
+            if key != 'page':
+                query_params[key] = value
+
+        # Remove page parameter references from absolute URI for base search reference
+        base_search = re.sub(r'(\?|&)page=\d+', '', self.request.build_absolute_uri())
+        current_page = self.request.query_params.get(self.page_query_param, 1)
+
+        paginated_response = {'result_count': self.page.paginator.count,
+                              'page_count': self.page.paginator.num_pages,
+                              'current_page': current_page,
+                              'query_params': query_params,
+                              'base_search':  base_search,
+                              'next': self.get_next_link(),
+                              'previous': self.get_previous_link(),
+                              'results': data}
+
+        return Response(paginated_response)
 
 
 class RulesetsListingView(APIView):
@@ -83,7 +104,7 @@ class RulesetSearchView(ListAPIView):
     """
     Search for rules that match the provided criteria.
     """
-    paginator = StandardResultsSetPagination()
+    paginator = RuleSetPagination()
     permission_classes = [IsGroupMember]
     filter_class = YaraRuleFilter
 
@@ -154,38 +175,15 @@ class RulesetExportView(APIView):
     permission_classes = [IsGroupMember]
 
     def get(self, request, group_name):
-        # Filter based on query params and float dependent rules towards bottom
-        group_context = get_group_or_404(group_name)
-        queryset = get_queryset(group_context, query_params=request.query_params)
-        rules = queryset.order_by('dependencies')
-
-        # Temporary rule file container
-        temp_file = io.StringIO()
-
-        # Build import search patterns
-        import_options = interp.import_options
-        import_pattern = 'import \"(?:{})\"\n'.format('|'.join(import_options))
-
         # Specify metadata of file object
         file_meta = 'attachment; filename="RuleExport.yara"'
 
-        for rule in rules.iterator():
-            # name, tags, imports, metadata, strings, condition, scopes
-            formatted_rule = rule.format_rule()
-            temp_file.write(formatted_rule)
-            temp_file.write('\n\n')
+        # Filter based on query params and float dependent rules towards bottom
+        group_context = get_group_or_404(group_name)
+        queryset = get_queryset(group_context, query_params=request.query_params)
 
-        present_imports = set(re.findall(import_pattern, temp_file.getvalue()))
-        importless_file = re.sub(import_pattern, '', temp_file.getvalue())
-
-        # Finalized rule file container
-        rule_file = io.StringIO()
-
-        for import_value in present_imports:
-            rule_file.write(import_value)
-
-        rule_file.write('\n\n')
-        rule_file.write(importless_file)
+        # Build rule file
+        rule_file = build_yarafile(queryset)
 
         response = HttpResponse(content=rule_file.getvalue())
         response['Content-Type'] = 'application/text'
@@ -198,10 +196,8 @@ class RulesetBulkEditView(APIView):
     """
     post:
     Add rules in bulk to specified ruleset.
-
     patch:
     Edit rules in bulk to specified ruleset.
-
     delete:
     Delete rules in bulk to specified ruleset.
     """
@@ -215,69 +211,57 @@ class RulesetBulkEditView(APIView):
 
         submitter = request.user
         group_context = get_group_or_404(group_name)
+
+        # Retrieve submitted yara rule content
         submissions = request.data.getlist('rule_content')
 
         # Only owners and admins can submit ACTIVE or INACTIVE rules
         if group_admin(request):
-            set_active = request.data.get('active')
-
-            if set_active:
+            if request.data.get('active'):
                 status = YaraRule.ACTIVE_STATUS
             else:
                 status = YaraRule.INACTIVE_STATUS
-
         # Rules from others are automatically put into pending status
         else:
             status = YaraRule.PENDING_STATUS
 
+        # Check for source and category
         source = request.data.get('source', '')
         category = request.data.get('category', '')
 
-        if group_context.groupmeta.source_required and not source:
-            response_content['errors'].append('No source specified')
+        # Check for in-line modifications
+        add_tags = request.data.get('add_tags', None)
+        prepend_name = request.data.get('prepend_name', None)
+        append_name = request.data.get('append_name', None)
 
-        if group_context.groupmeta.category_required and not category:
-            response_content['errors'].append('No category specified')
+        add_metadata = {metakey[13:] : metavalue
+                        for metakey, metavalue in request.data.items()
+                        if metakey.startswith('set_metadata_')}
 
-        if not submissions:
-            response_content['errors'].append('No yara content submitted')
+        # Process each submission
+        for raw_submission in submissions:
+            submission_results = parse_rule_submission(raw_submission)
+            # Inspect the submission results
+            parsed_rules = submission_results['parsed_rules']
+            parsing_error = submission_results['parser_error']
+            # Identify any parsing errors that occur
+            if parsing_error:
+                response_content['errors'].append(parsing_error)
+            else:
+                # Save successfully parsed rules
+                save_results = YaraRule.objects.process_parsed_rules(parsed_rules,
+                                                                     source, category,
+                                                                     submitter, group_context,
+                                                                     status=status,
+                                                                     add_tags=add_tags,
+                                                                     add_metadata=add_metadata,
+                                                                     prepend_name=prepend_name,
+                                                                     append_name=append_name)
 
-        # If no errors continue
-        if not response_content['errors']:
-
-            # Check for in-line modifications
-            add_tags = request.data.get('add_tags', None)
-            prepend_name = request.data.get('prepend_name', None)
-            append_name = request.data.get('append_name', None)
-
-            add_metadata = {metakey[13:] : metavalue
-                            for metakey, metavalue in request.data.items()
-                            if metakey.startswith('set_metadata_')}
-
-            # Process each submission
-            for raw_submission in submissions:
-                submission_results = parse_rule_submission(raw_submission)
-                # Inspect the submission results
-                parsed_rules = submission_results['parsed_rules']
-                parsing_error = submission_results['parser_error']
-                # Identify any parsing errors that occur
-                if parsing_error:
-                    response_content['errors'].append(parsing_error)
-                else:
-                    # Save successfully parsed rules
-                    save_results = YaraRule.objects.process_parsed_rules(parsed_rules,
-                                                                         source, category,
-                                                                         submitter, group_context,
-                                                                         status=status,
-                                                                         add_tags=add_tags,
-                                                                         add_metadata=add_metadata,
-                                                                         prepend_name=prepend_name,
-                                                                         append_name=append_name)
-
-                    response_content['errors'] = save_results['errors']
-                    response_content['warnings'] = save_results['warnings']
-                    response_content['rule_upload_count'] += save_results['rule_upload_count']
-                    response_content['rule_collision_count'] += save_results['rule_collision_count']
+                response_content['errors'] = save_results['errors']
+                response_content['warnings'] = save_results['warnings']
+                response_content['rule_upload_count'] += save_results['rule_upload_count']
+                response_content['rule_collision_count'] += save_results['rule_collision_count']
 
         return Response(response_content)
 
@@ -328,13 +312,10 @@ class RuleDetailsView(APIView):
     """
     get:
     Retrieve specified rule.
-
     put:
     Replace specified rule.
-
     patch:
     Update specified rule.
-
     delete:
     Delete specified rule.
     """
@@ -422,7 +403,6 @@ class RuleCommentsView(APIView):
     """
     get:
     List comments belonging to specified rule.
-
     post:
     Add comment to specified rule.
     """
@@ -456,10 +436,8 @@ class RuleCommentDetailsView(APIView):
     """
     get:
     Retrieve specific rule comment.
-
     put:
     Update rule comment.
-
     delete:
     Delete rule comment.
     """

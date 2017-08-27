@@ -8,6 +8,14 @@ textarea {
     resize: none;
 }
 
+div #MessageAlerts {
+  position: fixed;
+  top: 50px;
+  right: 30px;
+  z-index: 100;
+  width: 25%;
+}
+
 .Absolute-Center {
   margin: auto;
   position: absolute;

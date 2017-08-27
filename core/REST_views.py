@@ -1,6 +1,4 @@
-from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import Group
 
 from rest_framework import status
@@ -56,17 +54,17 @@ class AccountGroupsView(APIView):
 
         # Ensure group name was specified
         if not group_name:
-            return Response('No Group Name Specified',
+            return Response({'errors': ['No Group Name Specified']},
                             status=status.HTTP_400_BAD_REQUEST)
 
         # Verify group does not already exist
         elif Group.objects.filter(name=group_name).exists():
-            return Response('Group Already Exists',
+            return Response({'errors': ['Group Already Exists']},
                             status=status.HTTP_400_BAD_REQUEST)
 
         # Verify a user with the same name does not already exist
         elif User.objects.filter(username=group_name).exists():
-            return Response('Group Already Exists',
+            return Response({'errors': ['Group Already Exists']},
                             status=status.HTTP_400_BAD_REQUEST)
 
         # Create group and group meta
@@ -159,9 +157,9 @@ class GroupMembersView(APIView):
             new_member_names = request.data.getlist('member')
         except AttributeError:
             new_member_names = request.data.get('member', list())
-        finally:
-            if not isinstance(new_member_names, list):
-                new_member_names = [new_member_names]
+
+        if not isinstance(new_member_names, list):
+            new_member_names = [new_member_names]
 
         # Ensure group owner doesn't get inadvertently processed
         if group_owner_name in new_member_names:
@@ -219,9 +217,9 @@ class GroupAdminsView(APIView):
             new_admin_names = request.data.getlist('admin')
         except AttributeError:
             new_admin_names = request.data.get('admin', list())
-        finally:
-            if not isinstance(new_admin_names, list):
-                new_admin_names = [new_admin_names]
+
+        if not isinstance(new_admin_names, list):
+            new_admin_names = [new_admin_names]
 
         # Ensure group owner doesn't get inadvertently processed
         if group_owner_name in new_admin_names:
@@ -279,9 +277,9 @@ class GroupSourcesView(APIView):
             new_sources = request.data.getlist('source')
         except AttributeError:
             new_sources = request.data.get('source', list())
-        finally:
-            if not isinstance(new_sources, list):
-                new_sources = [new_sources]
+
+        if not isinstance(new_sources, list):
+            new_sources = [new_sources]
 
         for source in new_sources:
             if source not in group_metadata.source_options:
@@ -334,9 +332,9 @@ class GroupCategoriesView(APIView):
             new_categories = request.data.getlist('category')
         except AttributeError:
             new_categories = request.data.get('category', list())
-        finally:
-            if not isinstance(new_categories, list):
-                new_categories = [new_categories]
+
+        if not isinstance(new_categories, list):
+            new_categories = [new_categories]
 
         for category in new_categories:
             if category not in group_metadata.category_options:

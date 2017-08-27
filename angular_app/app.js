@@ -15,5 +15,5 @@ var yaraGuardian = angular.module('yaraGuardian', [
     'yaraGuardian.RuleBulkEdit',
     'yaraGuardian.RuleDetails',
     'yaraGuardian.AccountManagement',
-    'yaraGuardian.GroupManagement',
+    'yaraGuardian.GroupManagement'
 ]);

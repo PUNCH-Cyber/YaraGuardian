@@ -4,10 +4,9 @@ from django.contrib.postgres.fields import ArrayField, HStoreField, JSONField
 
 from django.contrib.auth.models import Group
 from core.models import TimeStampedModel
-
-from .managers import YaraRuleManager
-
 from plyara import ParserInterpreter
+
+from .managers import YaraRuleManager, YaraRuleCommentManager
 
 interp = ParserInterpreter()
 
@@ -87,3 +86,6 @@ class YaraRuleComment(TimeStampedModel):
     content = models.TextField()
     poster = models.ForeignKey(settings.AUTH_USER_MODEL)
     rule = models.ForeignKey(YaraRule, on_delete=models.CASCADE)
+
+    # Instantiate custom manager
+    objects = YaraRuleCommentManager()

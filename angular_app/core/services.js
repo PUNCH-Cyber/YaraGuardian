@@ -9,8 +9,8 @@ app.factory('coreServices', function() {
         for (var objKey in clearingObj){
             if (clearingObj.hasOwnProperty(objKey)){
                 delete clearingObj[objKey];
-            };
-        };
+            }
+        }
     };
 
     serviceMethods.refreshObject = function(oldContent, newContent) {

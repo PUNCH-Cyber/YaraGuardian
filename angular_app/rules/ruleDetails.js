@@ -68,9 +68,8 @@ app.factory('ruleManagerService', function($uibModal, accountService, apiService
             showRuleWriteModal();
         } else {
             showRuleReadModal();
-        };
-
-    };
+        }
+    }
 
     function commentRetrieveSuccess(response) {
         coreServices.refreshObject(managerMethods.selectedRule, response.data);
@@ -79,33 +78,32 @@ app.factory('ruleManagerService', function($uibModal, accountService, apiService
             showCommentWriteModal();
         } else {
             showCommentReadModal();
-        };
-
-    };
+        }
+    }
 
     function commentCreateSuccess(response) {
         managerMethods.selectedRule.comments.push(response.data)
-    };
+    }
 
     function commentDeleteSuccess(response) {
         var index = managerMethods.selectedRule.comments.indexOf(managerMethods.selectedRuleComment);
         managerMethods.selectedRule.comments.splice(index, 1);
-    };
+    }
 
     function ruleUpdateSuccess(response) {
         coreServices.refreshObject(managerMethods.selectedRule, response.data);
         ruleStatService.retrieveStats(accountService.groupContext.name);
-    };
+    }
 
     function ruleDeleteSuccess(response) {
         var index = ruleSearchService.search.results.indexOf(managerMethods.selectedRule);
         ruleSearchService.search.results.splice(index, 1);
         ruleStatService.retrieveStats(accountService.groupContext.name);
-    };
+    }
 
     function ruleMethodFailure(response) {
-        messageService.pushMessage(response, 'danger');
-    };
+        messageService.processMessages(response.data);
+    }
 
     function showRuleReadModal() {
         var modalInstance = $uibModal.open({
@@ -114,7 +112,7 @@ app.factory('ruleManagerService', function($uibModal, accountService, apiService
             controllerAs: 'ModalCtrl',
             size: 'lg'
         });
-    };
+    }
 
     function showRuleWriteModal() {
         var modalInstance = $uibModal.open({
@@ -123,7 +121,7 @@ app.factory('ruleManagerService', function($uibModal, accountService, apiService
             controllerAs: 'ModalCtrl',
             size: 'lg'
         });
-    };
+    }
 
     function showCommentReadModal() {
         var modalInstance = $uibModal.open({
@@ -132,7 +130,7 @@ app.factory('ruleManagerService', function($uibModal, accountService, apiService
             controllerAs: 'ModalCtrl',
             size: 'lg'
         });
-    };
+    }
 
     function showCommentWriteModal() {
         var modalInstance = $uibModal.open({
@@ -141,7 +139,7 @@ app.factory('ruleManagerService', function($uibModal, accountService, apiService
             controllerAs: 'ModalCtrl',
             size: 'lg'
         });
-    };
+    }
 
     return managerMethods;
 

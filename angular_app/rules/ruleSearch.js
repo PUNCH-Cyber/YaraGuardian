@@ -25,7 +25,7 @@ app.factory('ruleSearchService', function(apiService, messageService) {
         if (angular.isDefined(searchMethods.search.query_params)) {
             var paramData = searchMethods.search.query_params;
             apiService.ruleList(groupContext, paramData).then(searchSuccess, searchFailure);
-        };
+        }
     };
 
     searchMethods.getSearchPage = function(pageURL) {
@@ -100,11 +100,11 @@ app.controller('RuleSearchController', function(accountService, ruleSearchServic
 
         if (self.show_untagged_rules === true) {
           self.formData['tagged'] = 'false';
-        };
+        }
 
         if (self.show_tagged_rules === true) {
           self.formData['tagged'] = 'true';
-        };
+        }
 
         ruleSearchService.performSearch(accountService.groupContext.name, self.formData);
         instantiateForm();
@@ -136,21 +136,21 @@ app.controller('RuleSearchController', function(accountService, ruleSearchServic
         self.searchSelections.name = self.nameSearchOptions[0];
         self.searchSelections.metakey = self.metakeySearchOptions[0];
         self.searchSelections.metadata = self.metadataSearchOptions[0];
-    };
+    }
 
     function buildSearches() {
         angular.forEach(self.searchValues, function (searchContent, searchName) {
             self.formData[self.searchSelections[searchName].search] = searchContent;
         });
-    };
+    }
 
     function buildFilters() {
         angular.forEach(self.filterValues, function (filterContent, filterName) {
             if (filterContent.length > 0) {
                 self.formData[self.filterSelections[filterName].search] = filterContent.join();
-            };
+            }
         });
-    };
+    }
 
     instantiateForm()
 });

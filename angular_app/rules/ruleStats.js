@@ -19,11 +19,11 @@ app.factory('ruleStatService', function(apiService, coreServices) {
     };
 
     statMethods.sortStat = function(statType, sortType) {
-      if (statType == 'tags') {
+      if (statType === 'tags') {
         statMethods.panelDisplays.tags = buildStatPages(statMethods.stats.tag_count, 15, sortType);
-      } else if (statType == 'metakeys') {
+      } else if (statType === 'metakeys') {
         statMethods.panelDisplays.metakeys = buildStatPages(statMethods.stats.metakey_count, 15, sortType);
-      };
+      }
     };
 
     function statRetrieveSuccess(response) {
@@ -31,11 +31,11 @@ app.factory('ruleStatService', function(apiService, coreServices) {
         statMethods.sortStat('tags', 'nameForward');
         statMethods.sortStat('metakeys', 'nameForward');
         statMethods.loading = false;
-    };
+    }
 
     function statRetrieveFailure(response) {
         statMethods.loading = false;
-    };
+    }
 
     function buildStatPages(statObj, pageSize, sortType) {
         var entryCount = Object.keys(statObj).length;
@@ -51,32 +51,32 @@ app.factory('ruleStatService', function(apiService, coreServices) {
         var pageCounter = 1;
         var entryCounter = 0;
 
-        if (sortType == 'nameForward') {
+        if (sortType === 'nameForward') {
           statContent.sort(function(a, b) {
             return a[0] > b[0] ? 1 : -1;
           });
 
-        } else if (sortType == 'nameBackward') {
+        } else if (sortType === 'nameBackward') {
           statContent.sort(function(a, b) {
             return a[0] > b[0] ? 1 : -1;
           }).reverse();
 
-        } else if (sortType == 'countForward') {
+        } else if (sortType === 'countForward') {
           statContent.sort(function(a, b) {
             return a[1] > b[1] ? 1 : -1;
           });
 
-        } else if (sortType == 'countBackward') {
+        } else if (sortType === 'countBackward') {
           statContent.sort(function(a, b) {
             return a[1] > b[1] ? 1 : -1;
           }).reverse();
-        };
+        }
 
         while (pageCounter <= maxPage) {
             statPages[pageCounter] = statContent.slice(entryCounter, entryCounter + pageSize);
             pageCounter = pageCounter + 1;
             entryCounter = entryCounter + pageSize;
-        };
+        }
 
         var newStatObj = {};
         newStatObj.maxPage = maxPage;
@@ -85,7 +85,7 @@ app.factory('ruleStatService', function(apiService, coreServices) {
         newStatObj.pageEntries = statPages;
 
         return newStatObj;
-    };
+    }
 
     return statMethods;
 });
@@ -140,7 +140,7 @@ app.controller('RuleStatsController', function(accountService, ruleStatService) 
             self.panelDisplays.tags.currentPage = 1;
         } else {
             self.panelDisplays.tags.currentPage = page;
-        };
+        }
     };
 
     self.changeMetakeyDisplayPage = function(page) {
@@ -152,6 +152,6 @@ app.controller('RuleStatsController', function(accountService, ruleStatService) 
           self.panelDisplays.metakeys.currentPage = 1;
       } else {
           self.panelDisplays.metakeys.currentPage = page;
-      };
+      }
     };
 });

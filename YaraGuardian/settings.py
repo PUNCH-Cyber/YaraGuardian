@@ -194,6 +194,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # REST Framework default configurations
 REST_FRAMEWORK = {
+    'EXCEPTION_HANDLER': 'rules.services.custom_exception_handler',
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',

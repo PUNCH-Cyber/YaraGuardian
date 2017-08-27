@@ -1,15 +1,15 @@
+import datetime
+
 from django.db.models import F, Func, Value
 from django.db.models.functions import Upper, Lower, Concat
-from django.db import models, IntegrityError
+from django.db import models
 
 from operator import itemgetter
 from collections import OrderedDict, defaultdict
 
-from core.services import (generate_kwargs_from_parsed_rule,
-                           process_extracted_comments,
-                           check_lexical_convention,
-                           delimit_filtervalue,
-                           get_admin_account)
+from core.services import get_admin_account, delimit_filtervalue
+
+from .services import check_lexical_convention, generate_kwargs_from_parsed_rule
 
 
 class GET_VALUE(F):
@@ -43,8 +43,10 @@ class DELETE(Func):
 def lowercase(text):
     return text.lower()
 
+
 def uppercase(text):
     return text.upper()
+
 
 def capitalize(text):
     return text.capitalize()
@@ -542,105 +544,99 @@ class YaraRuleManager(models.Manager):
 
     def process_parsed_rules(self, rules, source, category, submitter, owner, status='active',
                              add_tags=None, add_metadata=None, prepend_name=None, append_name=None):
-
-        # Ensure specified source is valid
-        if not owner.groupmeta.source_required and not source:
-            pass
-        elif owner.groupmeta.source_required and not source:
-            raise IntegrityError('No Source Specified')
-        elif source not in owner.groupmeta.source_options:
-            raise IntegrityError('Invalid Source Specified: {}'.format(source))
-
-        # Ensure specified category is valid
-        if not owner.groupmeta.category_required and not category:
-            pass
-        elif owner.groupmeta.category_required and not category:
-            raise IntegrityError('No Category Specified')
-        elif category not in owner.groupmeta.category_options:
-            raise IntegrityError('Invalid Category Specified: {}'.format(category))
-
         # Container for results
         feedback = {'errors': [],
                     'warnings': [],
                     'rule_upload_count': 0,
                     'rule_collision_count': 0}
 
-        # Rules must have a non-anonymous submitter
-        if not submitter.is_anonymous():
+        # Ensure specified source is valid
+        if not owner.groupmeta.source_required and not source:
+            pass
+        elif owner.groupmeta.source_required and not source:
+            feedback['errors'].append('No Source Specified')
+        elif source not in owner.groupmeta.source_options:
+            feedback['errors'].append('Invalid Source Specified: {}'.format(source))
+
+        # Ensure specified category is valid
+        if not owner.groupmeta.category_required and not category:
+            pass
+        elif owner.groupmeta.category_required and not category:
+            feedback['errors'].append('No Category Specified')
+        elif category not in owner.groupmeta.category_options:
+            feedback['errors'].append('Invalid Category Specified: {}'.format(category))
+
+        # Rules must have a non-anonymous submitter and must not have pre-processing errors
+        if not submitter.is_anonymous() and not feedback['errors']:
 
             prepend_conflicts = 0
             append_conflicts = 0
 
             for rule in rules:
+                rule_kwargs = generate_kwargs_from_parsed_rule(rule)
+                rule_kwargs['owner'] = owner
+                rule_kwargs['submitter'] = submitter
+                rule_kwargs['source'] = source
+                rule_kwargs['category'] = category
+                rule_kwargs['status'] = status
 
-                try:
-                    rule_kwargs = generate_kwargs_from_parsed_rule(rule)
-                    rule_kwargs['owner'] = owner
-                    rule_kwargs['submitter'] = submitter
-                    rule_kwargs['source'] = source
-                    rule_kwargs['category'] = category
-                    rule_kwargs['status'] = status
+                # Pop comments from kwargs so they don't get processed prematurely
+                comments = rule_kwargs.pop('comments')
 
-                    # Pop comments from kwargs so they don't get processed prematurely
-                    comments = rule_kwargs.pop('comments')
+                # Process Modifications
+                if add_tags:
+                    if isinstance(add_tags, str):
+                        add_tags = delimit_filtervalue(add_tags)
 
-                    # Process Modifications
-                    if add_tags:
-                        if isinstance(add_tags, str):
-                            add_tags = delimit_filtervalue(add_tags)
-
-                        for tag_value in add_tags:
-                            if check_lexical_convention(tag_value):
-                                if tag_value not in rule_kwargs['tags']:
-                                    rule_kwargs['tags'].append(tag_value)
-                            else:
-                                msg = 'Skipped Invalid Tag: {}'.format(tag_value)
-
-                                if msg not in feedback['warnings']:
-                                    feedback['warnings'].append(msg)
-
-                    if add_metadata:
-                        for metakey, metavalue in add_metadata.items():
-                            if check_lexical_convention(metakey) and \
-                            (metavalue.isdigit() or metavalue in ('true', 'false') or \
-                            (metavalue.startswith('\"') and metavalue.endswith('\"'))):
-                                rule_kwargs['metadata'][metakey] = metavalue
-                            else:
-                                msg = 'Skipped Invalid Metadata: {}'.format(metakey)
-
-                                if msg not in feedback['warnings']:
-                                    feedback['warnings'].append(msg)
-
-                    if prepend_name:
-                        new_name = prepend_name + rule_kwargs['name']
-
-                        if check_lexical_convention(new_name):
-                            rule_kwargs['name'] = new_name
+                    for tag_value in add_tags:
+                        if check_lexical_convention(tag_value):
+                            if tag_value not in rule_kwargs['tags']:
+                                rule_kwargs['tags'].append(tag_value)
                         else:
-                            prepend_conflicts += 1
+                            msg = 'Skipped Invalid Tag: {}'.format(tag_value)
 
-                    if append_name:
-                        new_name = rule_kwargs['name'] + append_name
+                            if msg not in feedback['warnings']:
+                                feedback['warnings'].append(msg)
 
-                        if check_lexical_convention(new_name):
-                            rule_kwargs['name'] = new_name
+                if add_metadata:
+                    for metakey, metavalue in add_metadata.items():
+                        if check_lexical_convention(metakey) and \
+                        (metavalue.isdigit() or metavalue in ('true', 'false') or \
+                        (metavalue.startswith('\"') and metavalue.endswith('\"'))):
+                            rule_kwargs['metadata'][metakey] = metavalue
                         else:
-                            append_conflicts += 1
+                            msg = 'Skipped Invalid Metadata: {}'.format(metakey)
 
-                    # Check for rules with exact same detection logic
-                    if self.filter(owner=owner, logic_hash=rule_kwargs['logic_hash']).exists():
-                        raise IntegrityError('A rule with the same logic already exists')
+                            if msg not in feedback['warnings']:
+                                feedback['warnings'].append(msg)
 
+                if prepend_name:
+                    new_name = prepend_name + rule_kwargs['name']
+
+                    if check_lexical_convention(new_name):
+                        rule_kwargs['name'] = new_name
+                    else:
+                        prepend_conflicts += 1
+
+                if append_name:
+                    new_name = rule_kwargs['name'] + append_name
+
+                    if check_lexical_convention(new_name):
+                        rule_kwargs['name'] = new_name
+                    else:
+                        append_conflicts += 1
+
+                # Check for rules with exact same detection logic
+                if self.filter(owner=owner, logic_hash=rule_kwargs['logic_hash']).exists():
+                    feedback['rule_collision_count'] += 1
+                else:
                     new_rule = self.create(**rule_kwargs)
                     new_rule.save()
 
                     # Process extracted comments
-                    process_extracted_comments(new_rule, comments)
+                    new_rule.yararulecomment_set.model.objects.process_extracted_comments(new_rule, comments)
 
                     feedback['rule_upload_count'] += 1
-
-                except IntegrityError:
-                    feedback['rule_collision_count'] += 1
 
             # Check to see if any name manipulation conflicts occurred for feedback
             if prepend_conflicts:
@@ -652,3 +648,16 @@ class YaraRuleManager(models.Manager):
                 feedback['warnings'].append(msg)
 
         return feedback
+
+
+class YaraRuleCommentManager(models.Manager):
+
+    def process_extracted_comments(self, rule, comments):
+        # Generate comments from parsed comment data
+        for comment in comments:
+            comment_data = {'created': datetime.datetime.now(),
+                            'modified': datetime.datetime.now(),
+                            'poster': get_admin_account(),
+                            'content': comment, 'rule': rule}
+
+            self.create(**comment_data)

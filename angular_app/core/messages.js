@@ -35,7 +35,24 @@ app.factory('messageService', function() {
             messageMethods.pushMessage(msgContent, 'success');
         });
     };
-    
+
+    messageMethods.processMessages = function(responseContent) {
+        if (angular.isObject(responseContent)) {
+
+            if ('errors' in responseContent && angular.isArray(responseContent['errors'])) {
+              messageMethods.processErrors(responseContent['errors']);
+            }
+
+            if ('warnings' in responseContent && angular.isArray(responseContent['warnings'])) {
+              messageMethods.processErrors(responseContent['warnings']);
+            }
+
+            if ('changes' in responseContent && angular.isArray(responseContent['changes'])) {
+              messageMethods.processErrors(responseContent['changes']);
+            }
+        }
+    };
+
     return messageMethods;
 });
 

@@ -27,30 +27,30 @@ app.factory('accountService', function($uibModal, apiService, coreServices, rule
 
     accountMethods.displayAccountDetails = function() {
         showAccountReadModal();
-    }
+    };
 
     accountMethods.userIsOwnerOrAdmin = function() {
-        if ((Object.keys(accountMethods.groupContext).length != 0) && (Object.keys(accountMethods.account).length != 0)) {
-            if (accountMethods.account.username == accountMethods.groupContext.owner) {return true};
-            if (accountMethods.groupContext.members[accountMethods.account.username].membership == "admin") {return true};
-        };
+        if ((Object.keys(accountMethods.groupContext).length !== 0) && (Object.keys(accountMethods.account).length !== 0)) {
+            if (accountMethods.account.username === accountMethods.groupContext.owner) {return true};
+            if (accountMethods.groupContext.members[accountMethods.account.username].membership === "admin") {return true};
+        }
         return false;
     };
 
     accountMethods.userIsOwner = function() {
-        if ((Object.keys(accountMethods.groupContext).length != 0) && (Object.keys(accountMethods.account).length != 0)) {
-            if (accountMethods.account.username == accountMethods.groupContext.owner) {return true};
-        };
+        if ((Object.keys(accountMethods.groupContext).length !== 0) && (Object.keys(accountMethods.account).length !== 0)) {
+            if (accountMethods.account.username === accountMethods.groupContext.owner) {return true};
+        }
         return false;
     };
 
     function accountRetrieveSuccess(response) {
         coreServices.refreshObject(accountMethods.account, response.data);
 
-        if (Object.keys(accountMethods.groupContext).length == 0) {
+        if (Object.keys(accountMethods.groupContext).length === 0) {
             accountMethods.retrieveGroup(accountMethods.account.username);
-        };
-    };
+        }
+    }
 
     function accountRetrieveFailure(response) {console.log(response)};
 
@@ -58,7 +58,7 @@ app.factory('accountService', function($uibModal, apiService, coreServices, rule
         coreServices.refreshObject(accountMethods.groupContext, response.data);
         ruleSearchService.refreshSearch(accountMethods.groupContext.name);
         ruleStatService.retrieveStats(accountMethods.groupContext.name);
-    };
+    }
 
     function groupRetrieveFailure(response) {console.log(response)};
 
@@ -69,7 +69,7 @@ app.factory('accountService', function($uibModal, apiService, coreServices, rule
             controllerAs: 'ModalCtrl',
             size: 'md'
         });
-    };
+    }
 
     return accountMethods;
 });

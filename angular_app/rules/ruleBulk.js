@@ -48,8 +48,8 @@ app.controller('RuleBulkController', function($httpParamSerializer, apiService, 
         for (var ruleKey in self.selectedRules){
             if (self.selectedRules[ruleKey] === true){
                 verifiedSelections.push(ruleKey);
-            };
-        };
+            }
+        }
 
         return {'identifier': verifiedSelections.join(',')};
     };
@@ -78,57 +78,55 @@ app.controller('RuleBulkController', function($httpParamSerializer, apiService, 
 
     function buildEdits() {
         // Build edit command for name update
-        if (self.nameEditSelection.option != undefined) {
+        if (self.nameEditSelection.option !== undefined) {
             self.formData[self.nameEditSelection.option.command] = self.nameEditSelection.value;
-        };
+        }
 
         // Build edit command for metakey edit
-        if (self.metakeyEditSelection.key != undefined) {
+        if (self.metakeyEditSelection.key !== undefined) {
             var metakeyCommand = self.metakeyEditSelection.option.command + self.metakeyEditSelection.key;
             self.formData[metakeyCommand] = self.metakeyEditSelection.value;
-        };
+        }
 
         // Build edit command for setting metadata
-        if (self.setMetadata.key != "" && self.setMetadata.value != "") {
+        if (self.setMetadata.key !== "" && self.setMetadata.value !== "") {
             self.formData['set_metadata_' + self.setMetadata.key] = self.setMetadata.value;
-        };
-    };
+        }
+    }
 
     function ruleUpdateSuccess(response) {
         var updateMsg = "Update operation performed on " + response.data['modified_rule_count'] + " rules"
         messageService.pushMessage(updateMsg, 'success');
-        messageService.processErrors(response.data['errors']);
-        messageService.processWarnings(response.data['warnings']);
+        messageService.processMessages(response.data);
 
         ruleSearchService.refreshSearch(accountService.groupContext.name);
         ruleStatService.retrieveStats(accountService.groupContext.name);
         clearForm();
-    };
+    }
 
     function ruleDeleteSuccess(response) {
         var updateMsg = "Delete operation performed on " + response.data['deleted_rule_count'] + " rules"
         messageService.pushMessage(updateMsg, 'warning');
         ruleSearchService.refreshSearch(accountService.groupContext.name);
         ruleStatService.retrieveStats(accountService.groupContext.name);
-    };
+    }
 
     function ruleMethodSuccess(response) {
-      messageService.processChanges(response.data['changes']);
-      messageService.processWarnings(response.data['warnings']);
+      messageService.processMessages(response.data);
       ruleStatService.retrieveStats(accountService.groupContext.name);
-    };
+    }
 
     function ruleMethodFailure(response) {
         self.editSubmission.errors = response.data;
-    };
+    }
 
     function clearObject(clearingObj) {
         for (var objKey in clearingObj){
             if (clearingObj.hasOwnProperty(objKey)){
                 delete clearingObj[objKey];
-            };
-        };
-    };
+            }
+        }
+    }
 
     function clearForm() {
         clearObject(self.formData);
@@ -144,6 +142,6 @@ app.controller('RuleBulkController', function($httpParamSerializer, apiService, 
 
         self.setMetadata.key = "";
         self.setMetadata.value = "";
-    };
+    }
 
 });

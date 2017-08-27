@@ -1,16 +1,17 @@
 var app = angular.module('yaraGuardian.GroupManagement', [
     'yaraGuardian.API',
     'yaraGuardian.Messages',
+    'yaraGuardian.Services',
     'yaraGuardian.AccountManagement'
 ]);
 
 
-app.factory('groupService', function(apiService, accountService, messageService) {
+app.factory('groupService', function(apiService, coreServices, accountService, messageService) {
 
     var groupMethods = {};
 
     groupMethods.createGroup = function(groupName) {
-        var data = {'name': groupName}
+        var data = {'name': groupName};
         apiService.groupCreate(data).then(groupChangeSuccess, groupChangeFailure);
     };
 
@@ -72,21 +73,21 @@ app.factory('groupService', function(apiService, accountService, messageService)
         accountService.retrieveAccount();
         accountService.refreshGroup();
         messageService.pushMessage('Group Updated', 'success');
-    };
+    }
 
     function groupDeleteSuccess(response) {
         accountService.retrieveAccount();
 
         if (!(accountService.groupContext.name in accountService.account.available_groups)) {
             accountService.retrieveGroup(accountService.account.username);
-        };
+        }
 
         messageService.pushMessage('Group Deleted', 'warning');
-    };
+    }
 
     function groupChangeFailure(response) {
-        messageService.pushMessage(response, 'danger');
-    };
+        messageService.processMessages(response.data);
+    }
 
     return groupMethods;
 });
@@ -108,17 +109,17 @@ app.controller('GroupManagementController', function(groupService) {
     
     self.createNewGroup = function() {
         groupService.createGroup(self.formData.groupSubmission);
-        clearObject(self.formData);
+        coreServices.clearObject(self.formData);
     };
 
     self.addMemberToGroup = function() {
         groupService.addMember(self.formData.memberSubmission);
-        clearObject(self.formData);
+        coreServices.clearObject(self.formData);
     };
 
     self.addCategoryToGroup = function() {
       groupService.addCategory(self.formData.categorySubmission);
-      clearObject(self.formData);
+      coreServices.clearObject(self.formData);
     };
 
     self.removeCategoryFromGroup = function(category_name) {
@@ -127,7 +128,7 @@ app.controller('GroupManagementController', function(groupService) {
 
     self.addSourceToGroup = function() {
       groupService.addSource(self.formData.sourceSubmission);
-      clearObject(self.formData);
+      coreServices.clearObject(self.formData);
     };
 
     self.removeSourceFromGroup = function(source_name) {
@@ -150,11 +151,4 @@ app.controller('GroupManagementController', function(groupService) {
         groupService.removeAdmin(member_name);
     };
 
-    function clearObject(clearingObj) {
-        for (var objKey in clearingObj){
-            if (clearingObj.hasOwnProperty(objKey)){
-                delete clearingObj[objKey];
-            };
-        };
-    };
 });
