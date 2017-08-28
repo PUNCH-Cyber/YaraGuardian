@@ -1,6 +1,6 @@
 chardet==3.0.4
 coreapi==2.3.1
-Django==1.9.3
+Django==1.9.13
 django-angular==0.8.4
 django-filter==1.0.4
 djangorestframework==3.6.3
