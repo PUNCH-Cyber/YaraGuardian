@@ -1,11 +1,17 @@
+# Derived from https://github.com/8u1a/plyara
+
 import re
+import collections
 import hashlib
 import logging
 import ply.lex as lex
 import ply.yacc as yacc
 from collections import deque
 
-# Derived from https://github.com/8u1a/plyara
+# Initialize logger
+logger = logging.getLogger(__name__)
+
+Element = collections.namedtuple('Element', ['type', 'value'])
 
 
 class ElementTypes:
@@ -54,9 +60,7 @@ class ParserInterpreter:
 
     function_keywords = ('uint8', 'uint16', 'uint32', 'uint8be', 'uint16be', 'uint32be')
 
-    def __init__(self, debug=False, additional_modules=None):
-        self.isPrintDebug = debug
-
+    def __init__(self, additional_modules=None):
         self.rules = deque()
         self.currentRule = {}
 
@@ -86,111 +90,111 @@ class ParserInterpreter:
         self.tagAccumulator = []
         self.commentAccumulator = []
 
-    def addElement(self, elementType, elementValue):
+    def add_element(self, element):
         """
         Accepts elements from the parser and uses them to
         construct a representation of the Yara rule
         """
 
-        if elementType == ElementTypes.RULE_NAME:
-            self.currentRule["rule_name"] = elementValue
+        if element.type == ElementTypes.RULE_NAME:
+            logger.debug('matched rule {}'.format(element.value))
 
-            self.readAndResetAccumulators()
+            self.currentRule['rule_name'] = element.value
+            self.read_accumulators()
             self.currentRule['imports'] = self.detectImports(self.currentRule)
 
             self.rules.append(self.currentRule)
-
-            if self.isPrintDebug:
-                print("--Adding Rule " + self.currentRule['rule_name'])
-
             self.currentRule = {}
 
-        elif elementType == ElementTypes.METADATA_KEY_VALUE:
-            if "metadata" not in self.currentRule:
-                self.currentRule["metadata"] = {elementValue[0]: elementValue[1]}
-            else:
-                if elementValue[0] not in self.currentRule["metadata"]:
-                    self.currentRule["metadata"][elementValue[0]] = elementValue[1]
+        elif element.type == ElementTypes.METADATA_KEY_VALUE:
+            if 'metadata' not in self.currentRule:
+                self.currentRule['metadata'] = {}
+
+            for key, value in element.value.items():
+                logger.debug('matched metadata {} with value {}'.format(key, value))
+
+                if key not in self.currentRule['metadata']:
+                    self.currentRule['metadata'][key] = value
+                elif isinstance(self.currentRule['metadata'][key], list):
+                    self.currentRule['metadata'][key].append(value)
                 else:
-                    if isinstance(self.currentRule["metadata"][elementValue[0]], list):
-                        self.currentRule["metadata"][elementValue[0]].append(elementValue[1])
-                    else:
-                        self.currentRule["metadata"][elementValue[0]] = [self.currentRule["metadata"][elementValue[0]], elementValue[1]]
+                    self.currentRule['metadata'][key] = [self.currentRule['metadata'][key], value]
 
-        elif elementType == ElementTypes.STRINGS_KEY_VALUE:
-            string_dict = {'name': elementValue[0], 'value': elementValue[1]}
+        elif element.type == ElementTypes.STRINGS_KEY_VALUE:
+            if 'strings' not in self.currentRule:
+                self.currentRule['strings'] = []
 
-            if len(self.stringModifiersAccumulator)  > 0:
-                string_dict["modifiers"] = self.stringModifiersAccumulator
-                self.stringModifiersAccumulator = []
+            for key, value in element.value.items():
+                logger.debug('matched string {} with value {}'.format(key, value))
 
-            if "strings" not in self.currentRule:
-                self.currentRule["strings"] = [string_dict]
-            else:
-                self.currentRule["strings"].append(string_dict)
+                string_dict = {'name': key, 'value': value}
 
-        elif elementType == ElementTypes.STRINGS_MODIFIER:
-            self.stringModifiersAccumulator.append(elementValue)
+                if any(self.stringModifiersAccumulator):
+                    string_dict['modifiers'] = self.stringModifiersAccumulator
+                    self.stringModifiersAccumulator = []
 
-        elif elementType == ElementTypes.IMPORT:
-            self.importsAccumulator.append(elementValue)
+                self.currentRule['strings'].append(string_dict)
 
-        elif elementType == ElementTypes.INCLUDE:
-            self.includesAccumulator.append(elementValue)
+        elif element.type == ElementTypes.STRINGS_MODIFIER:
+            logger.debug('matched string modifier: {}'.format(element.value))
+            self.stringModifiersAccumulator.append(element.value)
 
-        elif elementType == ElementTypes.TERM:
-            self.termAccumulator.append(elementValue)
+        elif element.type == ElementTypes.IMPORT:
+            logger.debug('matched import {}'.format(element.value))
+            self.importsAccumulator.append(element.value)
 
-        elif elementType == ElementTypes.SCOPE:
-            self.scopeAccumulator.append(elementValue)
+        elif element.type == ElementTypes.INCLUDE:
+            logger.debug('matched include {}'.format(element.value))
+            self.includesAccumulator.append(element.value)
 
-        elif elementType == ElementTypes.TAG:
-            self.tagAccumulator.append(elementValue)
+        elif element.type == ElementTypes.TERM:
+            logger.debug('matched condition term {}'.format(element.value))
+            self.termAccumulator.append(element.value)
 
-        elif elementType == ElementTypes.COMMENT:
-            self.commentAccumulator.append(elementValue)
+        elif element.type == ElementTypes.SCOPE:
+            logger.debug('matched scope identifier {}'.format(element.value))
+            self.scopeAccumulator.append(element.value)
 
-        elif elementType == ElementTypes.MCOMMENT:
-            self.commentAccumulator.append(elementValue)
+        elif element.type == ElementTypes.TAG:
+            logger.debug('matched tag {}'.format(element.value))
+            self.tagAccumulator.append(element.value)
 
-    def readAndResetAccumulators(self):
+        elif element.type == ElementTypes.COMMENT:
+            logger.debug('matched comment {}'.format(element.value))
+            self.commentAccumulator.append(element.value)
+
+        elif element.type == ElementTypes.MCOMMENT:
+            logger.debug('matched multi-line comment {}'.format(element.value))
+            self.commentAccumulator.append(element.value)
+
+    def read_accumulators(self):
         """
         Adds accumulated elements to the current
         rule and resets the accumulators
         """
-        if len(self.importsAccumulator) > 0:
-            self.currentRule["imports"] = self.importsAccumulator
+        if any(self.importsAccumulator):
+            self.currentRule['imports'] = self.importsAccumulator
             self.importsAccumulator = []
 
-        if len(self.includesAccumulator) > 0:
-            self.currentRule["includes"] = self.includesAccumulator
+        if any(self.includesAccumulator):
+            self.currentRule['includes'] = self.includesAccumulator
             self.includesAccumulator = []
 
-        if len(self.termAccumulator) > 0:
-            self.currentRule["condition_terms"] = self.termAccumulator
+        if any(self.termAccumulator):
+            self.currentRule['condition_terms'] = self.termAccumulator
             self.termAccumulator = []
 
-        if len(self.scopeAccumulator) > 0:
-            self.currentRule["scopes"] = self.scopeAccumulator
+        if any(self.scopeAccumulator):
+            self.currentRule['scopes'] = self.scopeAccumulator
             self.scopeAccumulator = []
 
-        if len(self.tagAccumulator) > 0:
-            self.currentRule["tags"] = self.tagAccumulator
+        if any(self.tagAccumulator):
+            self.currentRule['tags'] = self.tagAccumulator
             self.tagAccumulator = []
 
-        if len(self.commentAccumulator) > 0:
-            self.currentRule["comments"] = self.commentAccumulator
+        if any(self.commentAccumulator):
+            self.currentRule['comments'] = self.commentAccumulator
             self.commentAccumulator = []
-
-    def printDebugMessage(self, message):
-        """
-        Prints a debug message emitted by the parser
-        if self.isPrintDebug is True
-        """
-        if self.isPrintDebug:
-            print(message)
-
-        return True
 
     def isValidRuleName(self, entry):
         """
@@ -741,8 +745,7 @@ class YaraParser(object):
         self.lexer = lex.lex(module=YaraLexerModule())
 
         self.parser = yacc.yacc(module=self, debug=debug)
-        self.parserInterpreter = ParserInterpreter(debug=debug,
-                                                   additional_modules=additional_modules)
+        self.parserInterpreter = ParserInterpreter(additional_modules=additional_modules)
 
         # attribute placeholder in case error encountered
         self.parser_error = {}
@@ -756,15 +759,16 @@ class YaraParser(object):
 
     def p_rule(self, p):
         '''rule : imports_and_scopes RULE ID tag_section LBRACE rule_body RBRACE'''
-        self.parserInterpreter.printDebugMessage('matched rule ' + str(p[3]))
-
         while self.rule_comments:
             comment = self.rule_comments.pop()
 
             if p.lexpos(5) < comment.lexpos < p.lexpos(7):
-                self.parserInterpreter.addElement(getattr(ElementTypes, comment.type), comment.value)
+                comment_type = getattr(ElementTypes, comment.type)
+                comment_element = Element(comment_type, comment.value)
+                self.parserInterpreter.add_element(comment_element)
 
-        self.parserInterpreter.addElement(ElementTypes.RULE_NAME, str(p[3]))
+        rulename_element = Element(ElementTypes.RULE_NAME, str(p[3]))
+        self.parserInterpreter.add_element(rulename_element)
 
     def p_imports_and_scopes(self, p):
         '''imports_and_scopes : imports
@@ -786,13 +790,13 @@ class YaraParser(object):
 
     def p_import(self, p):
         'import : IMPORT STRING'
-        self.parserInterpreter.printDebugMessage('...matched import ' + p[2])
-        self.parserInterpreter.addElement(ElementTypes.IMPORT, p[2])
+        import_element = Element(ElementTypes.IMPORT, p[2])
+        self.parserInterpreter.add_element(import_element)
 
     def p_include(self, p):
         'include : INCLUDE STRING'
-        self.parserInterpreter.printDebugMessage('...matched include ' + p[2])
-        self.parserInterpreter.addElement(ElementTypes.INCLUDE, p[2])
+        include_element = Element(ElementTypes.INCLUDE, p[2])
+        self.parserInterpreter.add_element(include_element)
 
     def p_scopes(self, p):
         '''scopes : scopes scope
@@ -808,18 +812,18 @@ class YaraParser(object):
 
     def p_tag(self, p):
         'tag : ID'
-        self.parserInterpreter.printDebugMessage('matched tag ' + str(p[1]))
-        self.parserInterpreter.addElement(ElementTypes.TAG, p[1])
+        tag_element = Element(ElementTypes.TAG, p[1])
+        self.parserInterpreter.add_element(tag_element)
 
     def p_scope(self, p):
         '''scope : PRIVATE
                  | GLOBAL'''
-        self.parserInterpreter.printDebugMessage('matched scope identifier ' + str(p[1]))
-        self.parserInterpreter.addElement(ElementTypes.SCOPE, p[1])
+        scope_element = Element(ElementTypes.SCOPE, p[1])
+        self.parserInterpreter.add_element(scope_element)
 
     def p_rule_body(self, p):
         'rule_body : sections'
-        self.parserInterpreter.printDebugMessage('...matched rule body')
+        logger.debug('Found rule body')
 
     def p_rule_sections(self, p):
         '''sections : sections section
@@ -832,20 +836,21 @@ class YaraParser(object):
 
     def p_meta_section(self, p):
         'meta_section : SECTIONMETA meta_kvs'
-        self.parserInterpreter.printDebugMessage('...matched meta section')
+        logger.debug('Found meta section')
 
     def p_strings_section(self, p):
         'strings_section : SECTIONSTRINGS strings_kvs'
+        logger.debug('Found strings section')
 
     def p_condition_section(self, p):
         'condition_section : SECTIONCONDITION expression'
+        logger.debug('Found condition section')
 
     # Meta elements.
 
     def p_meta_kvs(self, p):
         '''meta_kvs : meta_kvs meta_kv
                     | meta_kv'''
-        self.parserInterpreter.printDebugMessage('...matched meta kvs')
 
     def p_meta_kv(self, p):
         '''meta_kv : ID EQUALS STRING
@@ -853,17 +858,15 @@ class YaraParser(object):
                    | ID EQUALS TRUE
                    | ID EQUALS FALSE
                    | ID EQUALS NUM'''
-        key = str(p[1])
-        value = str(p[3])
-        self.parserInterpreter.printDebugMessage('matched meta kv: ' + key + " equals " + value)
-        self.parserInterpreter.addElement(ElementTypes.METADATA_KEY_VALUE, (key, value))
+        metadata = {str(p[1]): str(p[3])}
+        meta_element = Element(ElementTypes.METADATA_KEY_VALUE, metadata)
+        self.parserInterpreter.add_element(meta_element)
 
     # Strings elements.
 
     def p_strings_kvs(self, p):
         '''strings_kvs : strings_kvs strings_kv
                        | strings_kv'''
-        self.parserInterpreter.printDebugMessage('...matched strings kvs')
 
     def p_strings_kv(self, p):
         '''strings_kv : STRINGNAME EQUALS STRING
@@ -872,10 +875,9 @@ class YaraParser(object):
                       | STRINGNAME EQUALS REXSTRING
                       | STRINGNAME EQUALS REXSTRING string_modifiers'''
 
-        key = str(p[1])
-        value = str(p[3])
-        self.parserInterpreter.printDebugMessage('matched strings kv: ' + key + " equals " + value)
-        self.parserInterpreter.addElement(ElementTypes.STRINGS_KEY_VALUE, (key, value))
+        stringdata = {str(p[1]): str(p[3])}
+        string_element = Element(ElementTypes.STRINGS_KEY_VALUE, stringdata)
+        self.parserInterpreter.add_element(string_element)
 
     def p_string_modifers(self, p):
         '''string_modifiers : string_modifiers string_modifier
@@ -886,8 +888,8 @@ class YaraParser(object):
                            | ASCII
                            | WIDE
                            | FULLWORD'''
-        self.parserInterpreter.printDebugMessage('...matched a string modifier: ' + p[1])
-        self.parserInterpreter.addElement(ElementTypes.STRINGS_MODIFIER, p[1])
+        string_modifier_element = Element(ElementTypes.STRINGS_MODIFIER, p[1])
+        self.parserInterpreter.add_element(string_modifier_element)
 
 
     # Condition elements.
@@ -959,16 +961,15 @@ class YaraParser(object):
                 | STRINGNAME_ARRAY
                 | STRINGCOUNT
                 | REXSTRING'''
-
-        self.parserInterpreter.printDebugMessage('...matched a term: ' + p[1])
-        self.parserInterpreter.addElement(ElementTypes.TERM, p[1])
+        condition_element = Element(ElementTypes.TERM, p[1])
+        self.parserInterpreter.add_element(condition_element)
 
     # Error rule for syntax errors
     def p_error(self, p):
         if p.type in ('COMMENT', 'MCOMMENT'):
-             # Just a comment - tell parser that it is okay
-             self.parser.errok()
-             self.rule_comments.append(p)
+            # Just a comment - tell parser that it is okay
+            self.parser.errok()
+            self.rule_comments.append(p)
         else:
             error_message = "unknown text at {}; token of type {}".format(p.value, p.type)
             rule_success_count = len(self.parserInterpreter.rules)
