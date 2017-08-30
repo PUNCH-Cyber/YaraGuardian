@@ -117,7 +117,7 @@ class RulesetSearchView(ListAPIView):
         return YaraRuleSerializer
 
     def filter_queryset(self, queryset):
-        return self.filter_class(self.request.query_params, queryset=queryset).qs
+        return self.filter_class(self.request.query_params, queryset=queryset).qs.order_by('name')
 
 
 class RulesetStatsView(APIView):
