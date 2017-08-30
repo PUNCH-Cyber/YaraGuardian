@@ -191,14 +191,13 @@ class YaraRuleSerializer(serializers.Serializer):
 
         for dependency_name in obj.dependencies:
             try:
-                # Breaking the rules by leveraging private method - sorry
-                dependency_rule = obj._default_manager.get(name=dependency_name, owner=obj.owner)
+                dependency_rule = YaraRule.objects.get(name=dependency_name, owner=obj.owner)
                 dependencies['available'].append(dependency_rule.name)
                 # Use to return full dependency content, but we might just do name list for now
                 # dependencies['available'][dependency_rule.name] = dependency_rule.format_rule()
 
             except MultipleObjectsReturned:
-               dependency_rule =  obj._default_manager.filter(name=dependency_name, owner=obj.owner)[0]
+               dependency_rule =  YaraRule.objects.filter(name=dependency_name, owner=obj.owner)[0]
                dependencies['available'].append(dependency_rule.name)
 
             except ObjectDoesNotExist:
