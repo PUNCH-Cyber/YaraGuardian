@@ -62,7 +62,7 @@ echo "Starting Postgresql Server"
 systemctl start postgresql
 
 echo "Configuring Postgresql Database"
-sudo -u postgres psql -d template1 -c "CREATE EXTENSION hstore"
+sudo -u postgres psql -d template1 -c "CREATE EXTENSION IF NOT EXISTS hstore"
 sudo -u postgres psql -c "CREATE DATABASE ${PSQL_DATABASE}"
 sudo -u postgres psql -c "CREATE USER ${PSQL_USERNAME} WITH PASSWORD '${PSQL_PASSWORD}' CREATEDB"
 
