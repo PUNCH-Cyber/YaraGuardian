@@ -1,5 +1,6 @@
 var app = angular.module('yaraGuardian.RuleBulkEdit', [
     'yaraGuardian.API',
+    'yaraGuardian.Services',
     'yaraGuardian.RuleStats',
     'yaraGuardian.RuleSearch',
     'yaraGuardian.Messages',
@@ -7,7 +8,7 @@ var app = angular.module('yaraGuardian.RuleBulkEdit', [
 ]);
 
 
-app.controller('RuleBulkController', function($httpParamSerializer, apiService, accountService, messageService, ruleSearchService, ruleStatService) {
+app.controller('RuleBulkController', function($httpParamSerializer, apiService, coreServices, accountService, messageService, ruleSearchService, ruleStatService) {
     var self = this;
 
     self.formData = {};
@@ -120,20 +121,12 @@ app.controller('RuleBulkController', function($httpParamSerializer, apiService, 
         self.editSubmission.errors = response.data;
     }
 
-    function clearObject(clearingObj) {
-        for (var objKey in clearingObj){
-            if (clearingObj.hasOwnProperty(objKey)){
-                delete clearingObj[objKey];
-            }
-        }
-    }
-
     function clearForm() {
-        clearObject(self.formData);
-        clearObject(self.setMetadata);
-        clearObject(self.selectedRules);
-        clearObject(self.nameEditSelection);
-        clearObject(self.metakeyEditSelection);
+        coreServices.clearObject(self.formData);
+        coreServices.clearObject(self.setMetadata);
+        coreServices.clearObject(self.selectedRules);
+        coreServices.clearObject(self.nameEditSelection);
+        coreServices.clearObject(self.metakeyEditSelection);
 
         self.metakeyEditSelection.option = self.metakeyEditOptions[0];
         self.metakeyEditSelection.value = "";
