@@ -4,16 +4,20 @@ import YaraGuardian.API.urls
 
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
-from YaraGuardian.views import Index, Login, Logout, RecoverPassword, RegisterAccount
+from YaraGuardian.views import Index, Login, Logout, RecoverPassword, RegisterAccount, Healthz
 
 
 urlpatterns = [url(r'^$',
                    Index.as_view(),
                    name='Index'),
 
+               url(r'^healthz$',
+                   Healthz.as_view(),
+                   name='Healthz'),
+
                url(r'^API/',
                    include(YaraGuardian.API.urls)),
-            
+
                url(r'^admin/',
                    admin.site.urls),
 
