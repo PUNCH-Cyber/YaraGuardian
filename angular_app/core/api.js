@@ -1,12 +1,6 @@
 var app = angular.module('yaraGuardian.API', ['djng.urls']);
 
 
-app.config(['$httpProvider', function($httpProvider) {
-    $httpProvider.defaults.xsrfCookieName = 'csrftoken';
-    $httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';
-}]);
-
-
 app.factory('apiService', function($location, $http, $q, djangoUrl) {
 
     var apiMethods = {};
@@ -28,14 +22,14 @@ app.factory('apiService', function($location, $http, $q, djangoUrl) {
           URL = URL.replace("http", "https");
         }
 
-        $http.get(URL, {'Cache-Control': 'no-cache'}).then(apiCallSuccess(deferred), apiCallError(deferred));
+        $http.get(URL).then(apiCallSuccess(deferred), apiCallError(deferred));
         return deferred.promise;
     };
 
     apiMethods.ruleStats = function(groupContext, params) {
         var deferred = $q.defer();
         var url = djangoUrl.reverse('ruleset-stats', {'group_name': groupContext});
-        var data = {'params': params, 'Cache-Control': 'no-cache'};
+        var data = {'params': params};
         $http.get(url, data).then(apiCallSuccess(deferred), apiCallError(deferred));
         return deferred.promise;
     };
@@ -43,7 +37,7 @@ app.factory('apiService', function($location, $http, $q, djangoUrl) {
     apiMethods.ruleList = function(groupContext, params) {
         var deferred = $q.defer();
         var url = djangoUrl.reverse('ruleset-search', {'group_name': groupContext});
-        var data = {'params': params, 'Cache-Control': 'no-cache'};
+        var data = {'params': params};
         $http.get(url, data).then(apiCallSuccess(deferred), apiCallError(deferred));
         return deferred.promise;
     };
@@ -58,8 +52,7 @@ app.factory('apiService', function($location, $http, $q, djangoUrl) {
     apiMethods.ruleRetrieve = function(groupContext, ruleId) {
         var deferred = $q.defer();
         var url = djangoUrl.reverse('rule-details', {'group_name': groupContext, 'rule_pk': ruleId});
-        var data = {'Cache-Control': 'no-cache'};
-        $http.get(url, data).then(apiCallSuccess(deferred), apiCallError(deferred));
+        $http.get(url).then(apiCallSuccess(deferred), apiCallError(deferred));
         return deferred.promise;
     };
 
