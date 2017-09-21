@@ -258,8 +258,8 @@ class RulesetBulkEditView(APIView):
                                                                      prepend_name=prepend_name,
                                                                      append_name=append_name)
 
-                response_content['errors'] = save_results['errors']
-                response_content['warnings'] = save_results['warnings']
+                response_content['errors'].extend(save_results['errors'])
+                response_content['warnings'].extend(save_results['warnings'])
                 response_content['rule_upload_count'] += save_results['rule_upload_count']
                 response_content['rule_collision_count'] += save_results['rule_collision_count']
 
