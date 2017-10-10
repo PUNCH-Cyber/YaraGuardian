@@ -243,7 +243,7 @@ class RulesetBulkEditView(APIView):
             submission_results = parse_rule_submission(raw_submission)
             # Inspect the submission results
             parsed_rules = submission_results['parsed_rules']
-            parsing_error = submission_results['parser_error']['message']
+            parsing_error = submission_results['parser_error']
             # Identify any parsing errors that occur
             if parsing_error:
                 response_content['errors'].append(parsing_error)
