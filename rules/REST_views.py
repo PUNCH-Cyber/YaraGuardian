@@ -246,7 +246,7 @@ class RulesetBulkEditView(APIView):
             parsing_error = submission_results['parser_error']
             # Identify any parsing errors that occur
             if parsing_error:
-                response_content['errors'].append(parsing_error)
+                response_content['errors'].append(parsing_error['message'])
             else:
                 # Save successfully parsed rules
                 save_results = YaraRule.objects.process_parsed_rules(parsed_rules,
