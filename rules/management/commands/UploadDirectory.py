@@ -5,9 +5,10 @@ from django.core.management.base import BaseCommand, CommandError
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
+from unipath import Path
 
 from rules.models import YaraRule
-from core.services import parse_rule_submission
+from rules.services import parse_rule_submission
 
 try:
     # Use the built-in version of scandir/walk (3.5+), otherwise
@@ -41,12 +42,17 @@ class Command(BaseCommand):
         parser.add_argument('--category',
                             default='')
 
+        parser.add_argument('--folder_as',
+                            required=False,
+                            choices=['source', 'category'])
+
     def handle(self, *args, **options):
 
         username = options['user']
         groupname = options['group']
         rules_source = options['source']
         rules_category = options['category']
+        folder_override = options['folder_as']
 
         try:
             user = User.objects.get(username=username)
@@ -66,7 +72,6 @@ class Command(BaseCommand):
                 if os.path.isdir(yara_directory):
                     for root_path, subdirs, files in walk(yara_directory):
                         for entry in files:
-
                             if entry.endswith('.yar') or entry.endswith('.yara'):
                                 file_path = os.path.join(root_path, entry)
 
@@ -83,11 +88,29 @@ class Command(BaseCommand):
                                     logging.error(message)
                                 else:
                                     # Save successfully parsed rules
-                                    save_results = YaraRule.objects.process_parsed_rules(parsed_rules,
-                                                                                         rules_source,
-                                                                                         rules_category,
-                                                                                         user, group,
-                                                                                         status=YaraRule.ACTIVE_STATUS)
+                                    if folder_override == 'source':
+                                        rules_source = str(Path(file_path).parent.name)
+                                        save_results = YaraRule.objects.process_parsed_rules(parsed_rules,
+                                                                                            rules_source,
+                                                                                            rules_category,
+                                                                                            user, group,
+                                                                                            status=YaraRule.ACTIVE_STATUS,
+                                                                                            force_source=True)
+                                    elif folder_override == 'category':
+                                        rules_category = str(Path(file_path).parent.name)
+                                        save_results = YaraRule.objects.process_parsed_rules(parsed_rules,
+                                                                                            rules_source,
+                                                                                            rules_category,
+                                                                                            user, group,
+                                                                                            status=YaraRule.ACTIVE_STATUS,
+                                                                                            force_category=True)
+                                    else:
+                                        save_results = YaraRule.objects.process_parsed_rules(parsed_rules,
+                                                                                            rules_source,
+                                                                                            rules_category,
+                                                                                            user, group,
+                                                                                            status=YaraRule.ACTIVE_STATUS)
+
                                     upload_count = save_results['rule_upload_count']
                                     collision_count = save_results['rule_collision_count']
                                     message = '[✓] Successfully uploaded {} rules and prevented {} rule collisions from {}'.format(upload_count, collision_count, file_path)

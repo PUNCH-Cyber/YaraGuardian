@@ -543,7 +543,8 @@ class YaraRuleManager(models.Manager):
         return group.groupmeta.source_options
 
     def process_parsed_rules(self, rules, source, category, submitter, owner, status='active',
-                             add_tags=None, add_metadata=None, prepend_name=None, append_name=None):
+                             add_tags=None, add_metadata=None, prepend_name=None, append_name=None,
+                             force_source=False, force_category=False):
         # Container for results
         feedback = {'errors': [],
                     'warnings': [],
@@ -556,7 +557,11 @@ class YaraRuleManager(models.Manager):
         elif owner.groupmeta.source_required and not source:
             feedback['errors'].append('No Source Specified')
         elif source not in owner.groupmeta.source_options:
-            feedback['errors'].append('Invalid Source Specified: {}'.format(source))
+            if force_source:
+                owner.groupmeta.source_options.append(source)
+                owner.groupmeta.save()
+            else:
+                feedback['errors'].append('Invalid Source Specified: {}'.format(source))
 
         # Ensure specified category is valid
         if not owner.groupmeta.category_required and not category:
@@ -564,7 +569,11 @@ class YaraRuleManager(models.Manager):
         elif owner.groupmeta.category_required and not category:
             feedback['errors'].append('No Category Specified')
         elif category not in owner.groupmeta.category_options:
-            feedback['errors'].append('Invalid Category Specified: {}'.format(category))
+            if force_category:
+                owner.groupmeta.category_options.append(category)
+                owner.groupmeta.save()
+            else:
+                feedback['errors'].append('Invalid Category Specified: {}'.format(category))
 
         # Rules must have a non-anonymous submitter and must not have pre-processing errors
         if not submitter.is_anonymous() and not feedback['errors']:
