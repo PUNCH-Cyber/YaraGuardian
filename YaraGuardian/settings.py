@@ -18,19 +18,22 @@ MEDIA_ROOT.mkdir()
 LOGGING_ROOT.mkdir()
 TEMPLATE_ROOT.mkdir()
 
-# Use OS environment variables to load sensitive or dynamic settings
-settings_environment = os.environ
 
-# Alternatively, we can use JSON file
-# with open(os.path.join(BASE_DIR, "config.json")) as f:
-#     settings_environment = json.loads(f.read())
+# Load config.json to ensure required variables are present
+with open(os.path.join(BASE_DIR, "config.json")) as f:
+    settings_environment = json.loads(f.read())
+
+# Use OS environment variables to load sensitive or dynamic settings
+# overriding anything in config.json
+settings_environment.update(os.environ)
 
 # Leverage setting retrieval function to abstract the retrieval and manipulation
 # of sensitive or dynamic settings so we can load from either the OS environment or
 # a configuration file without making alot of changes throughout
 def retrieve_setting(setting, env=settings_environment,
                      arrayset=False, arraypattern='; |, |;|,| ',
-                     defaultset=False, defaultval=None, boolset=False):
+                     defaultset=False, defaultval=None, boolset=False,
+                     tupleset=False):
 
     if defaultset:
         # Attempt to retrieve setting that is optional to be in environment
@@ -58,13 +61,25 @@ def retrieve_setting(setting, env=settings_environment,
         else:
             # Convert to array using split pattern
             try:
-                return re.split(arraypattern, setting_value)
+                if setting_value:
+                    return re.split(arraypattern, setting_value)
             except TypeError:
                 error_message = "{} variable cannot be split".format(setting)
                 raise ImproperlyConfigured(error_message)
 
-    else:
-        return setting_value
+    elif tupleset:
+        if isinstance(setting_value, tuple):
+            return setting_value
+        else:
+            # Convert to array using split pattern
+            try:
+                if setting_value:
+                    return tuple(re.split(arraypattern, setting_value))
+            except TypeError:
+                error_message = "{} variable cannot be split".format(setting)
+                raise ImproperlyConfigured(error_message)
+
+    return setting_value
 
 
 # SECURITY WARNING: keep secret key used in production secret!
@@ -261,6 +276,24 @@ else:
 
     # Optionally specify the path to a PEM-formatted private key file to use for the SSL connection
     EMAIL_SSL_KEYFILE = retrieve_setting('EMAIL_SSL_KEYFILE', defaultset=True, defaultval=None)
+
+    # TLS Options
+    SECURE_SSL_REDIRECT = retrieve_setting('SECURE_SSL_REDIRECT', boolset=True, defaultset=True, defaultval='False')
+    SECURE_BROWSER_XSS_FILTER = retrieve_setting('SECURE_BROWSER_XSS_FILTER', boolset=True, defaultset=True, defaultval='False')
+    SECURE_CONTENT_TYPE_NOSNIFF = retrieve_setting('SECURE_CONTENT_TYPE_NOSNIFF', boolset=True, defaultset=True, defaultval='False')
+    SECURE_HSTS_PRELOAD = retrieve_setting('SECURE_HSTS_PRELOAD', boolset=True, defaultset=True, defaultval='False')
+    SECURE_HSTS_SECONDS = retrieve_setting('SECURE_HSTS_SECONDS', defaultset=True, defaultval='0')
+    SECURE_PROXY_SSL_HEADER = retrieve_setting('SECURE_PROXY_SSL_HEADER', tupleset=True, defaultset=True, defaultval=None)
+    SECURE_REDIRECT_EXEMPT = retrieve_setting('SECURE_REDIRECT_EXEMPT', arrayset=True, defaultset=True, defaultval=[])
+
+SERVE_STATIC = retrieve_setting('SERVE_STATIC', boolset=True, defaultset=True, defaultval='False')
+if SERVE_STATIC:
+    # Load whitenoise to serve staticfiles
+    WHITENOISE_MIDDLEWARE = ('whitenoise.middleware.WhiteNoiseMiddleware', )
+    MIDDLEWARE_CLASSES = WHITENOISE_MIDDLEWARE + MIDDLEWARE_CLASSES
+
+    # Enable GZIP functionality for static files
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Social Authentication Configurations
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = retrieve_setting('GOOGLE_OAUTH2_KEY', defaultset=True, defaultval=None)

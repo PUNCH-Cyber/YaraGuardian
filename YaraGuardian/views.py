@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.views.generic import View, TemplateView, FormView
 from django.contrib.auth import login, logout
 from django.core.urlresolvers import reverse, reverse_lazy
@@ -13,6 +13,12 @@ from .forms import RegistrationForm
 
 class Index(LoginRequiredModifiedMixin, TemplateView):
     template_name = 'application/Index.html'
+
+
+class Healthz(View):
+
+    def get(self, request, *args, **kwargs):
+        return HttpResponse(status=200)
 
 
 class Login(FormView):
