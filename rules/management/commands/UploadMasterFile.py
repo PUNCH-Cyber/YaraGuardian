@@ -8,7 +8,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 
 from rules.models import YaraRule
-from core.services import parse_rule_submission
+from rules.services import parse_rule_submission
 
 User = get_user_model()
 
