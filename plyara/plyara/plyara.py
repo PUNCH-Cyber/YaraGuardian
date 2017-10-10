@@ -971,7 +971,7 @@ class YaraParser(object):
             self.parser.errok()
             self.rule_comments.append(p)
         else:
-            error_message = "unknown text at {}; token of type {}".format(p.value, p.type)
+            error_message = "unknown text {} for token of type {} on line {}".format(p.value, p.type, p.lineno)
             rule_success_count = len(self.parserInterpreter.rules)
 
             self.parser_error['message'] = error_message

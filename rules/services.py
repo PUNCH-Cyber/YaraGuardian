@@ -81,9 +81,9 @@ def parse_rule_submission(raw_submission):
         except Exception as unexpected_exception:
             submission_results['parser_error'] = unexpected_exception
 
-            # parser.parser_error = {'message': <error>
-            #                        'success_count': <count rules parsed>,
-            #                        'last_success': <last rule parsed name>}
+    # {'message': <error>
+    #  'success_count': <count rules parsed>,
+    #  'last_success': <last rule parsed name>}
 
     return submission_results
 
