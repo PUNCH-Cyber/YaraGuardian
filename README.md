@@ -191,10 +191,10 @@ Additional Commands / Utilities
 -------------------------------
 Yara rule files can be ingested automatically using the following command line Utilities.
 
-  - UploadDirectory: This command will recursively traverse specified directories and process all yara rule files present
+  - UploadDirectory: This command will recursively traverse specified directories and process all yara rule files present. If the folder_as option is used, the field specified will be replaced with the folder name that the file is located in. Please note that the folder name will be 'forced' and therefore added to the groups options even if it did not previously exist.
       ~~~
       source .pyenv/bin/activate
-      python manage.py UploadDirectory {DIRECTORIES} --source={SOURCE} --category={CATEGORY} --user={USER} --group={GROUP}
+      python manage.py UploadDirectory {DIRECTORIES} --source={SOURCE} --category={CATEGORY} --user={USER} --group={GROUP} --folder_as={source|category}
       ~~~
 
   - UploadMasterFile: This command will process a master file and its associated imports
