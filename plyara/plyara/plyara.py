@@ -95,7 +95,7 @@ class ParserInterpreter:
         Accepts elements from the parser and uses them to
         construct a representation of the Yara rule
         """
-
+        
         if element.type == ElementTypes.RULE_NAME:
             logger.debug('matched rule {}'.format(element.value))
 
@@ -673,7 +673,7 @@ class YaraLexerModule(object):
 
     def t_STRING(self, t):
         # r'".+?"(?<![^\\]\\")'
-        r'".+?"(?<![^\\]\\")(?<![^\\][\\]{3}")(?<![^\\][\\]{5}")'
+        r'".*?"(?<![^\\]\\")(?<![^\\][\\]{3}")(?<![^\\][\\]{5}")'
         t.value = t.value
         return t
 
