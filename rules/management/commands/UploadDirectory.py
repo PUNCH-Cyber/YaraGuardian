@@ -46,10 +46,19 @@ class Command(BaseCommand):
                             required=False,
                             choices=['source', 'category'])
 
+        parser.add_argument('--status',
+                            default=YaraRule.ACTIVE_STATUS,
+                            choices=[YaraRule.ACTIVE_STATUS,
+                                     YaraRule.INACTIVE_STATUS,
+                                     YaraRule.PENDING_STATUS,
+                                     YaraRule.REJECTED_STATUS])
+
     def handle(self, *args, **options):
+
 
         username = options['user']
         groupname = options['group']
+        rules_status = options['status']
         rules_source = options['source']
         rules_category = options['category']
         folder_override = options['folder_as']
@@ -94,7 +103,7 @@ class Command(BaseCommand):
                                                                                             rules_source,
                                                                                             rules_category,
                                                                                             user, group,
-                                                                                            status=YaraRule.ACTIVE_STATUS,
+                                                                                            status=rules_status,
                                                                                             force_source=True)
                                     elif folder_override == 'category':
                                         rules_category = str(Path(file_path).parent.name)
@@ -102,14 +111,14 @@ class Command(BaseCommand):
                                                                                             rules_source,
                                                                                             rules_category,
                                                                                             user, group,
-                                                                                            status=YaraRule.ACTIVE_STATUS,
+                                                                                            status=rules_status,
                                                                                             force_category=True)
                                     else:
                                         save_results = YaraRule.objects.process_parsed_rules(parsed_rules,
                                                                                             rules_source,
                                                                                             rules_category,
                                                                                             user, group,
-                                                                                            status=YaraRule.ACTIVE_STATUS)
+                                                                                            status=rules_status)
 
                                     upload_count = save_results['rule_upload_count']
                                     collision_count = save_results['rule_collision_count']
