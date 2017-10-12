@@ -4,6 +4,7 @@ from functools import reduce
 import django_filters
 from django.db.models import Q
 from rest_framework import filters
+import dateutil.parser
 
 from core.services import delimit_filtervalue
 
@@ -60,13 +61,13 @@ class YaraRuleFilter(filters.FilterSet):
 
     metakey_endswith = django_filters.CharFilter(method='filter_metakey_endswith')
 
-    created_after = django_filters.IsoDateTimeFilter(name='created', lookup_expr='gt')
+    created_after = django_filters.CharFilter(method='filter_created_after')
 
-    created_before = django_filters.IsoDateTimeFilter(name='created', lookup_expr='lt')
+    created_before = django_filters.CharFilter(method='filter_created_before')
 
-    modified_after = django_filters.IsoDateTimeFilter(name='modified', lookup_expr='gt')
+    modified_after = django_filters.CharFilter(method='filter_modified_after')
 
-    modified_before = django_filters.IsoDateTimeFilter(name='modified', lookup_expr='lt')
+    modified_before = django_filters.CharFilter(method='filter_modified_before')
 
     submitter = django_filters.CharFilter(method='filter_submitter')
 
@@ -232,6 +233,38 @@ class YaraRuleFilter(filters.FilterSet):
                 metakey_params.append(key_value)
 
         return queryset.filter(metadata__has_any_keys=metakey_params)
+
+    def filter_created_after(self, queryset, name, value):
+        try:
+            value = dateutil.parser.parse(value)
+        except:
+            pass
+
+        return queryset.filter(created__gte=value)
+
+    def filter_created_before(self, queryset, name, value):
+        try:
+            value = dateutil.parser.parse(value)
+        except:
+            pass
+
+        return queryset.filter(created__lt=value)
+
+    def filter_modified_after(self, queryset, name, value):
+        try:
+            value = dateutil.parser.parse(value)
+        except:
+            pass
+
+        return queryset.filter(modified__gte=value)
+
+    def filter_modified_before(self, queryset, name, value):
+        try:
+            value = dateutil.parser.parse(value)
+        except:
+            pass
+
+        return queryset.filter(modified__lt=value)
 
     def filter_submitter(self, queryset, name, value):
         submitters = delimit_filtervalue(value)
