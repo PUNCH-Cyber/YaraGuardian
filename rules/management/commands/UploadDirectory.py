@@ -122,7 +122,7 @@ class Command(BaseCommand):
 
                                     upload_count = save_results['rule_upload_count']
                                     collision_count = save_results['rule_collision_count']
-                                    message = '[✓] Successfully uploaded {} rules and prevented {} rule collisions from {}'.format(upload_count, collision_count, file_path)
+                                    message = '[+] Successfully uploaded {} rules and prevented {} rule collisions from {}'.format(upload_count, collision_count, file_path)
                                     logging.info(message)
 
                                     for error in save_results['errors']:
