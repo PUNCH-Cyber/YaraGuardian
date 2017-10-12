@@ -215,15 +215,15 @@ class RulesetBulkEditView(APIView):
         # Retrieve submitted yara rule content
         submissions = request.data.getlist('rule_content')
 
-        # Only owners and admins can submit ACTIVE or INACTIVE rules
+        # Only owners and admins can specifically select the status
         if group_admin(request):
-            if request.data.get('active'):
-                status = YaraRule.ACTIVE_STATUS
-            else:
+            status = request.data.get('status')
+
+            if status not in [YaraRule.ACTIVE_STATUS, YaraRule.INACTIVE_STATUS, YaraRule.PENDING_STATUS]:
                 status = YaraRule.INACTIVE_STATUS
-        # Rules from others are automatically put into pending status
+        # Rules from others are automatically put into nonprivileged status
         else:
-            status = YaraRule.PENDING_STATUS
+            status = group_context.groupmeta.nonprivileged_submission_status
 
         # Check for source and category
         source = request.data.get('source', '')

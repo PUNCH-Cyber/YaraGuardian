@@ -31,7 +31,8 @@ class UserAdmin(admin.ModelAdmin):
 
 class GroupMetaAdmin(admin.ModelAdmin):
     actions = []
-    list_display = ('group', 'owner', 'source_required', 'category_required')
+    list_display = ('group', 'owner', 'source_required', 'category_required',
+                    'nonprivileged_submission_status')
 
     def get_queryset(self, request):
         qs = super(GroupMetaAdmin, self).get_queryset(request)

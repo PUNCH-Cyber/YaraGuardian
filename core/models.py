@@ -8,13 +8,7 @@ from django.contrib.auth.models import AbstractUser, Group
 from django.contrib.postgres.fields import ArrayField
 from django.template.loader import get_template
 
-
-class TimeStampedModel(models.Model):
-    modified = models.DateTimeField(auto_now=True)
-    created = models.DateTimeField(auto_now_add=True, editable=False)
-
-    class Meta:
-        abstract = True
+from rules.models import YaraRule
 
 
 class User(AbstractUser):
@@ -39,6 +33,10 @@ class GroupMeta(models.Model):
     category_required = models.BooleanField(default=True)
     category_options = ArrayField(models.CharField(max_length=75), default=list)
 
+    nonprivileged_submission_status = models.CharField(max_length=75,
+                                                       choices=YaraRule.STATUS_CHOICES,
+                                                       default=YaraRule.PENDING_STATUS)
+
     def save(self, *args, **kwargs):
         self.source_options = list(set(self.source_options))
         self.category_options = list(set(self.category_options))
@@ -46,13 +44,15 @@ class GroupMeta(models.Model):
         super(GroupMeta, self).save(*args, **kwargs)
 
 
-class RegistrationToken(TimeStampedModel):
+class RegistrationToken(models.Model):
 
     def generate_token():
         return hashlib.sha256(os.urandom(4096)).hexdigest()
 
     email = models.EmailField(unique=True)
     token = models.CharField(max_length=64, default=generate_token)
+    modified = models.DateTimeField(auto_now=True)
+    created = models.DateTimeField(auto_now_add=True, editable=False)
 
     def save(self, *args, **kwargs):
         subject = 'Registration'

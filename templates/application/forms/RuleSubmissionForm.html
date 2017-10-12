@@ -56,9 +56,14 @@
           </div>
 
           <br>
-          <div class="input-group" ng-if="AccountCtrl.userIsOwnerOrAdmin()">
-            <input type="checkbox" name="active" ng-model="SubmitCtrl.formData.active">
-            <span> Set Active</span>
+          <div ng-if="AccountCtrl.userIsOwnerOrAdmin()">
+            <label>Status:</label>
+            <div class="input-group">
+              <am-multiselect
+                ng-model="SubmitCtrl.formData.status"
+                options="c for c in ['active', 'inactive', 'pending']">
+              </am-multiselect>
+            </div>
           </div>
         </div>
 

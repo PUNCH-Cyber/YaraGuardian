@@ -3,7 +3,6 @@ from django.conf import settings
 from django.contrib.postgres.fields import ArrayField, HStoreField, JSONField
 
 from django.contrib.auth.models import Group
-from core.models import TimeStampedModel
 from plyara import ParserInterpreter
 
 from .managers import YaraRuleManager, YaraRuleCommentManager
@@ -11,7 +10,7 @@ from .managers import YaraRuleManager, YaraRuleCommentManager
 interp = ParserInterpreter()
 
 
-class YaraRule(TimeStampedModel):
+class YaraRule(models.Model):
 
     ACTIVE_STATUS = 'active'
     INACTIVE_STATUS = 'inactive'
@@ -58,6 +57,9 @@ class YaraRule(TimeStampedModel):
                               choices=STATUS_CHOICES,
                               default=ACTIVE_STATUS)
 
+    modified = models.DateTimeField(auto_now=True)
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+
     # Instantiate custom manager
     objects = YaraRuleManager()
 
@@ -82,10 +84,12 @@ class YaraRule(TimeStampedModel):
         return self.name
 
 
-class YaraRuleComment(TimeStampedModel):
+class YaraRuleComment(models.Model):
     content = models.TextField()
     poster = models.ForeignKey(settings.AUTH_USER_MODEL)
     rule = models.ForeignKey(YaraRule, on_delete=models.CASCADE)
+    modified = models.DateTimeField(auto_now=True)
+    created = models.DateTimeField(auto_now_add=True, editable=False)
 
     # Instantiate custom manager
     objects = YaraRuleCommentManager()
