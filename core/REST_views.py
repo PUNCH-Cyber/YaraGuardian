@@ -1,3 +1,4 @@
+import re
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 
@@ -19,9 +20,13 @@ from .REST_serializers import (PublicGroupSerializer,
                                PrivateUserSerializer,
                                PrivateGroupSerializer)
 
+from .patterns import group_name_pattern
+
 from .models import GroupMeta
 
 User = get_user_model()
+
+group_name_regex = re.compile('^' + group_name_pattern + '$')
 
 
 class AccountView(RetrieveAPIView):
@@ -65,6 +70,11 @@ class AccountGroupsView(APIView):
         # Verify a user with the same name does not already exist
         elif User.objects.filter(username=group_name).exists():
             return Response({'errors': ['Group Already Exists']},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # Verify group is allowed in URL routing
+        elif not group_name_regex.match(group_name):
+            return Response({'errors': ['Invalid Group Name']},
                             status=status.HTTP_400_BAD_REQUEST)
 
         # Create group and group meta
