@@ -40,6 +40,8 @@ class PrivateGroupSerializer(serializers.Serializer):
     category_required = serializers.SerializerMethodField()
     category_options = serializers.SerializerMethodField()
 
+    nonprivileged_submission_status = serializers.SerializerMethodField()
+
     rule_count = serializers.SerializerMethodField()
 
     def get_owner(self, obj):
@@ -79,10 +81,14 @@ class PrivateGroupSerializer(serializers.Serializer):
     def get_category_options(self, obj):
         return obj.groupmeta.category_options
 
+    def get_nonprivileged_submission_status(self, obj):
+        return obj.groupmeta.nonprivileged_submission_status
+
 
 class GroupMetaUpdateSerializer(serializers.Serializer):
     source_required = serializers.BooleanField()
     category_required = serializers.BooleanField()
+    nonprivileged_submission_status = serializers.ChoiceField(YaraRule.STATUS_CHOICES)
 
     def update(self, instance, validated_data):
         instance.source_required = validated_data.get('source_required',
@@ -90,6 +96,9 @@ class GroupMetaUpdateSerializer(serializers.Serializer):
 
         instance.category_required = validated_data.get('category_required',
                                                         instance.category_required)
+
+        instance.nonprivileged_submission_status = validated_data.get('nonprivileged_submission_status',
+                                                                      instance.nonprivileged_submission_status)
 
         instance.save()
         return instance

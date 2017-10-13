@@ -55,9 +55,7 @@
     <hr>
 
     <div class="row text-center">
-      <div class="col-md-2"></div>
-
-      <div class="col-md-3">
+      <div class="col-md-4">
         <button type="button" class="btn btn-danger"
                 ng-click="GroupCtrl.toggleCategory(true)"
                 ng-if="AccountCtrl.group.category_required == false">
@@ -71,9 +69,7 @@
         </button>
       </div>
 
-      <div class="col-md-2"></div>
-
-      <div class="col-md-3">
+      <div class="col-md-4">
         <button type="button" class="btn btn-danger"
                 ng-click="GroupCtrl.toggleSource(true)"
                 ng-if="AccountCtrl.group.source_required == false">
@@ -87,7 +83,41 @@
         </button>
       </div>
 
-      <div class="col-md-2"></div>
+      <div class="col-md-4">
+        <div class="btn-group" uib-dropdown>
+          <button type="button" class="btn btn-success" uib-dropdown-toggle
+                  ng-if="AccountCtrl.group.nonprivileged_submission_status == 'active'">
+            <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+            New member rules are active
+          </button>
+
+          <button type="button" class="btn btn-warning" uib-dropdown-toggl 
+                  ng-if="AccountCtrl.group.nonprivileged_submission_status == 'inactive'" e>
+            <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+            New member rules are inactive
+          </button>
+
+          <button type="button" class="btn btn-info" uib-dropdown-toggle 
+                  ng-if="AccountCtrl.group.nonprivileged_submission_status == 'pending'" >
+            <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
+            New member rules are pending
+          </button>
+
+          <button type="button" class="btn btn-danger" uib-dropdown-toggle
+                  ng-if="AccountCtrl.group.nonprivileged_submission_status == 'rejected'">
+            <span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span>
+            New member rules are rejected
+          </button>
+
+          <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+            <li ng-repeat="status in ['active', 'inactive', 'pending', 'rejected']"
+                ng-if="AccountCtrl.group.nonprivileged_submission_status != status" role="menuitem">
+              <a href ng-click="GroupCtrl.setSubmissionStatus(status)">Set new member rules to {{ status }}</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
     </div>
 
     <hr>

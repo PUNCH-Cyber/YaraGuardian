@@ -69,6 +69,11 @@ app.factory('groupService', function(apiService, coreServices, accountService, m
         apiService.groupDelete(groupName).then(groupDeleteSuccess, groupChangeFailure);
     };
 
+    groupMethods.setSubmissionStatus = function(submissionStatus) {
+        var data = {'nonprivileged_submission_status': submissionStatus};
+        apiService.groupUpdate(accountService.groupContext.name, data).then(groupChangeSuccess, groupChangeFailure);
+    };
+
     function groupChangeSuccess(response) {
         accountService.retrieveAccount();
         accountService.refreshGroup();
@@ -107,6 +112,10 @@ app.controller('GroupManagementController', function(groupService) {
         groupService.setCategoryRequirement(value);
     };
     
+    self.setSubmissionStatus = function(value) {
+        groupService.setSubmissionStatus(value);
+    };
+
     self.createNewGroup = function() {
         groupService.createGroup(self.formData.groupSubmission);
         coreServices.clearObject(self.formData);
