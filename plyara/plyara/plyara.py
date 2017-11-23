@@ -631,6 +631,7 @@ class YaraLexerModule(object):
 
     states = (
         ('STRING','exclusive'),
+        ('BYTESTRING','exclusive'),  
     )
 
     def t_COMMENT(self, t):
@@ -649,7 +650,6 @@ class YaraLexerModule(object):
 
     # Define a rule so we can track line numbers
     def t_NEWLINE(self, t):
-        # r'\n+'
         r'(\n|\r|\r\n)+'
         t.lexer.lineno += len(t.value)
         t.value = t.value
@@ -663,16 +663,19 @@ class YaraLexerModule(object):
     def t_SECTIONMETA(self, t):
         r'meta:|meta[\s]+:'
         t.value = t.value
+        t.lexer.section = 'meta'
         return t
 
     def t_SECTIONSTRINGS(self, t):
         r'strings:|strings[\s]+:'
         t.value = t.value
+        t.lexer.section = 'strings'
         return t
 
     def t_SECTIONCONDITION(self, t):
         r'condition:|condition[\s]+:'
         t.value = t.value
+        t.lexer.section = 'condition'
         return t
 
     def t_begin_STRING(self, t):
@@ -695,13 +698,46 @@ class YaraLexerModule(object):
     t_STRING_ignore = ' \t\n'
  
     def t_STRING_error(self, t):
-        raise TypeError("Illegal character " + t.value[0] + " at line " + str(t.lexer.lineno))
-        t.lexer.skip(1)
+        raise TypeError("Illegal string character " + t.value[0] + " at line " + str(t.lexer.lineno))
+        # t.lexer.skip(1)
 
-    def t_BYTESTRING(self, t):
-        r'\{[\|\(\)\[\]\-\?a-fA-F0-9\s]+\}'
-        t.value = t.value
+    def t_begin_BYTESTRING(self, t):
+        r'\{'
+
+        if hasattr(t.lexer, 'section') and t.lexer.section == 'strings':
+            t.lexer.bytestring_start = t.lexer.lexpos - 1
+            t.lexer.begin('BYTESTRING')
+        else:
+            t.type = "LBRACE"
+            return t
+
+    def t_BYTESTRING_pair(self, t):
+        r'\s*[a-fA-F0-9?]{2}\s*'
+
+    def t_BYTESTRING_group(self, t):
+        r'\((\s*[a-fA-F0-9?]{2}\s*\|?\s*)+\)'
+
+    def t_BYTESTRING_jump(self, t):
+        r'\[(\d*)-?(\d*)\]'
+        lower_bound = t.lexer.lexmatch.group(5)
+        upper_bound = t.lexer.lexmatch.group(6)
+
+        if lower_bound and upper_bound:
+            if not 0 <= int(lower_bound) <= int(upper_bound):
+                raise ValueError("Illegal bytestring jump bounds " + t.value + " at line " + str(t.lexer.lineno))
+
+    def t_BYTESTRING_end(self, t):
+        r'\}'
+        t.type = "BYTESTRING"
+        t.value = t.lexer.lexdata[t.lexer.bytestring_start : t.lexer.lexpos]
+        t.lexer.begin('INITIAL')
         return t
+
+    t_BYTESTRING_ignore = ' '
+
+    def t_BYTESTRING_error(self, t):
+        raise TypeError("Illegal bytestring character " + t.value[0] + " at line " + str(t.lexer.lineno))
+        # t.lexer.skip(1)
 
     def t_REXSTRING(self, t):
         r'\/.+\/(?=\s|$)'
@@ -734,13 +770,12 @@ class YaraLexerModule(object):
         return t
 
     # A string containing ignored characters (spaces and tabs)
-    #t_ignore = ' \t\r\n'
     t_ignore = ' \t'
 
     # Error handling rule
     def t_error(self, t):
         raise TypeError("Illegal character " + t.value[0] + " at line " + str(t.lexer.lineno))
-        t.lexer.skip(1)
+        # t.lexer.skip(1)
 
     precedence = (('right', 'NUM'), ('right', 'ID'), ('right', 'HEXNUM'))
 
