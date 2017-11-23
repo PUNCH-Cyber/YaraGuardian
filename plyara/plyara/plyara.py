@@ -629,6 +629,10 @@ class YaraLexerModule(object):
     t_AMPERSAND = r'&'
     t_DOTDOT = r'\.\.'
 
+    states = (
+        ('STRING','exclusive'),
+    )
+
     def t_COMMENT(self, t):
         r'(//.*)(?=\n)'
         return t
@@ -671,11 +675,28 @@ class YaraLexerModule(object):
         t.value = t.value
         return t
 
-    def t_STRING(self, t):
-        # r'".+?"(?<![^\\]\\")'
-        r'".*?"(?<![^\\]\\")(?<![^\\][\\]{3}")(?<![^\\][\\]{5}")'
-        t.value = t.value
-        return t
+    def t_begin_STRING(self, t):
+        r'"'
+        t.lexer.escape = 0
+        t.lexer.string_start = t.lexer.lexpos - 1
+        t.lexer.begin('STRING')
+
+    def t_STRING_value(self, t):
+        r'.'
+        if t.lexer.escape == 0 and t.value == '"':
+            t.type = "STRING"
+            t.value = t.lexer.lexdata[t.lexer.string_start : t.lexer.lexpos]
+            t.lexer.begin('INITIAL')
+            return t
+
+        if t.value == '\\' or t.lexer.escape == 1:
+            t.lexer.escape ^= 1            
+
+    t_STRING_ignore = ' \t\n'
+ 
+    def t_STRING_error(self, t):
+        raise TypeError("Illegal character " + t.value[0] + " at line " + str(t.lexer.lineno))
+        t.lexer.skip(1)
 
     def t_BYTESTRING(self, t):
         r'\{[\|\(\)\[\]\-\?a-fA-F0-9\s]+\}'
