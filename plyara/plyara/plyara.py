@@ -1,4 +1,4 @@
-# Derived from https://github.com/8u1a/plyara
+# Derived and modified from https://github.com/8u1a/plyara
 
 import re
 import collections

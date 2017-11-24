@@ -1,3 +1,5 @@
+# Derived and modified from 'https://github.com/8u1a/plyara'
+
 import os
 import sys
 import operator
