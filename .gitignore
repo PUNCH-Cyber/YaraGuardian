@@ -1,6 +1,7 @@
 *.pyc
 *.log
 *.egg
+*.egg-info
 *.lock
 .DS_Store
 .pyenv
