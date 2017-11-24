@@ -23,7 +23,7 @@ class Command(BaseCommand):
         for rule in corpus.iterator():
             rule_index += 1
             logic_data = {'strings': rule.strings, 'condition_terms': rule.condition}
-            logic_hash = interp.generateLogicHash(logic_data)
+            logic_hash = interp.generate_rule_logic_hash(logic_data)
             rule.logic_hash = logic_hash
             rule.save()
             logging.info('Rule Logic Update: {} of {}'.format(rule_index, rule_count))

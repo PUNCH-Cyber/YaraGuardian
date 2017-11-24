@@ -77,7 +77,7 @@ class YaraRule(models.Model):
         raw_rule['condition_terms'] = self.condition
         raw_rule['scopes'] = self.scopes
 
-        formatted_rule = interp.rebuildYaraRule(raw_rule)
+        formatted_rule = interp.rebuild_rule(raw_rule)
         return formatted_rule
 
     def __str__(self):

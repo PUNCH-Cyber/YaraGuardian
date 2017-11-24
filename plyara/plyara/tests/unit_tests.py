@@ -19,7 +19,7 @@ class TestParserInterpreter(unittest.TestCase):
         for entry in result:
             rulename = entry['rule_name']
             setname, _ = rulename.split('_')
-            rulehash = parser.parserInterpreter.generateLogicHash(entry)
+            rulehash = parser.parser_interpreter.generate_rule_logic_hash(entry)
 
             if setname not in rule_mapping:
                 rule_mapping[setname] = [rulehash]

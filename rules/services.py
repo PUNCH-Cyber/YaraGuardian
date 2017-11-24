@@ -9,7 +9,7 @@ interp = ParserInterpreter()
 
 
 def check_lexical_convention(entry):
-    return interp.isValidRuleName(entry)
+    return interp.is_valid_rule_name(entry)
 
 
 def generate_kwargs_from_parsed_rule(parsed_rule):
@@ -22,13 +22,13 @@ def generate_kwargs_from_parsed_rule(parsed_rule):
     condition = parsed_rule['condition_terms']
     imports = parsed_rule.get('imports', [])
     comments = parsed_rule.get('comments', [])
-    dependencies = interp.detectDependencies(parsed_rule)
+    dependencies = interp.detect_rule_dependencies(parsed_rule)
 
     # Calculate hash value of rule strings and condition
-    logic_hash = interp.generateLogicHash(parsed_rule)
+    logic_hash = interp.generate_rule_logic_hash(parsed_rule)
 
     # Ensure that the proper imports are added based on condition
-    detected_imports = interp.detectImports(parsed_rule)
+    detected_imports = interp.detect_rule_imports(parsed_rule)
     imports.extend(detected_imports)
 
     # TEMP FIX - Use only a single instance of a metakey
