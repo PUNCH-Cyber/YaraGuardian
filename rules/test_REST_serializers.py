@@ -19,16 +19,16 @@ class YaraRuleSerializerTestCase(TestCase):
         cls.rule = YaraRule.objects.create(name='SerializedRule',
                                            strings={},
                                            condition=[],
-                                           tags=['Serialized'],
-                                           scopes=['private'],
-                                           imports=['\"pe\"'],
-                                           metadata={'test': '\"serialization\"'},
-                                           dependencies=['Serialization'],
-                                           logic_hash='SERIAL' * 6 + '0001',
+                                           tags=[],
+                                           scopes=[],
+                                           imports=[],
+                                           metadata={},
+                                           dependencies=['serialization'],
+                                           logic_hash='',
                                            owner=cls.group,
                                            submitter=cls.user,
-                                           source='Serializer Source',
-                                           category='Serializer Category',
+                                           source='',
+                                           category='',
                                            status=YaraRule.ACTIVE_STATUS)
 
         cls.serializer = YaraRuleSerializer(instance=cls.rule)
@@ -50,6 +50,12 @@ class YaraRuleSerializerTestCase(TestCase):
                                             'comments',
                                             'created',
                                             'modified'])
+
+    def test_missing_dependency(self):
+        data = self.serializer.data
+        self.assertCountEqual(data['dependencies'], {'count': 1,
+                                                     'available': [],
+                                                     'missing': ['serialization']})
 
 
 class YaraRuleStatsSerializerTestCase(TestCase):
