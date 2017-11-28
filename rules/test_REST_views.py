@@ -1,7 +1,12 @@
 from django.test import TestCase
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, resolve
 from rest_framework.test import APIRequestFactory, force_authenticate
 
+from django.contrib.auth.models import Group
+
+from core.models import GroupMeta
+
+from .models import YaraRule
 from .testing_core import generate_test_user
 
 from .REST_views import (RulesetsListingView,
@@ -27,7 +32,7 @@ class RulesetsListingViewTestCase(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.user = generate_test_user()
+        cls.user = generate_test_user(username='RULE_TESTER_0001')
         cls.group = cls.user.groups.get()
 
     def test_authenticated_get_request(self):
@@ -43,31 +48,101 @@ class RulesetsListingViewTestCase(TestCase):
 
 
 class RulesetViewTestCase(TestCase):
-    # TO-DO
 
     def setUp(self):
-        self.url = reverse('ruleset')
         self.factory = APIRequestFactory()
-        self.view = RulesetView
+        self.view = RulesetView.as_view()
+        
+        self.user1 = generate_test_user(username='RULE_TESTER_0001')
+        self.group_meta = self.user1.groups.get().groupmeta
 
     @classmethod
     def setUpTestData(cls):
-        cls.user = generate_test_user()
-        cls.group = cls.user.groups.get()
+        cls.data = {'source': '',
+                    'category': '',
+                    'rule_content': 'rule dummy { condition: false }',
+                    'status': YaraRule.ACTIVE_STATUS}
+
+    def test_valid_authenticated_post_request(self):
+        self.group_meta.source_required = False
+        self.group_meta.category_required = False
+        self.group_meta.save()
+
+        group_name = self.user1.groups.get().name
+        url = reverse('ruleset', kwargs={'group_name': group_name})
+
+        request = self.factory.post(url, self.data)
+        request.resolver_match = resolve(url)
+
+        force_authenticate(request, user=self.user1)
+        response = self.view(request, group_name=group_name)
+
+        self.assertEqual(response.status_code, 201)
+
+    def test_invalid_authenticated_post_request(self):
+        group_name = self.user1.groups.get().name
+        url = reverse('ruleset', kwargs={'group_name': group_name})
+
+        request = self.factory.post(url, self.data)
+        request.resolver_match = resolve(url)
+
+        force_authenticate(request, user=self.user1)
+        response = self.view(request, group_name=group_name)
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_unauthenticated_post_request(self):
+        group_name = self.user1.groups.get().name
+        url = reverse('ruleset', kwargs={'group_name': group_name})
+
+        request = self.factory.post(url, self.data)
+        request.resolver_match = resolve(url)
+
+        response = self.view(request, group_name=group_name)
+
+        self.assertEqual(response.status_code, 403)
 
 
 class RulesetStatsViewTestCase(TestCase):
-    # TO-DO
 
     def setUp(self):
-        self.url = reverse('ruleset-stats')
         self.factory = APIRequestFactory()
-        self.view = RulesetStatsView
+        self.view = RulesetStatsView.as_view()
 
     @classmethod
     def setUpTestData(cls):
-        cls.user = generate_test_user()
-        cls.group = cls.user.groups.get()
+        cls.user1 = generate_test_user(username='RULE_TESTER_0001')
+        cls.user2 = generate_test_user(username='RULE_TESTER_0002')
+
+    def test_authenticated_get_request(self):
+        group_name = self.user1.groups.get().name
+        url = reverse('ruleset-stats', kwargs={'group_name': group_name})
+        request = self.factory.get(url)
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user1)
+        response = self.view(request, group_name=group_name)
+        self.assertEqual(response.status_code, 200)
+
+    def test_unauthenticated_get_request(self):
+        group_name = self.user1.groups.get().name
+        url = reverse('ruleset-stats', kwargs={'group_name': group_name})
+        
+        request = self.factory.get(url)
+        request.resolver_match = resolve(url)
+        response = self.view(request, group_name=group_name)
+        
+        self.assertEqual(response.status_code, 403)
+
+    def test_nonmember_get_request(self):
+        group_name = self.user2.groups.get().name
+        url = reverse('ruleset-stats', kwargs={'group_name': group_name})
+        
+        request = self.factory.get(url)
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user1)
+        response = self.view(request, group_name=group_name)
+        
+        self.assertEqual(response.status_code, 403)
 
 
 class RulesetSearchViewTestCase(TestCase):

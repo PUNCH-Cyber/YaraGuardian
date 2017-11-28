@@ -10,7 +10,7 @@ class YaraRuleSearchTestCase(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.user = generate_test_user()
+        cls.user = generate_test_user(username='RULETESTER')
         cls.group = cls.user.groups.get()
 
         cls.source_options = ['Internal Source', 'External Submission', 'Reporting']
