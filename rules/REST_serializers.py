@@ -159,8 +159,16 @@ class YaraRuleSerializer(serializers.Serializer):
         super(YaraRuleSerializer, self).__init__(*args, **kwargs)
 
         try:
-            self.fields['source'] = serializers.ChoiceField(choices=self.retrieve_sources())
-            self.fields['category'] = serializers.ChoiceField(choices=self.retrieve_categories())
+            source_blank = not self.retrieve_request_group().groupmeta.source_required
+            self.fields['source'] = serializers.ChoiceField(choices=self.retrieve_sources(),
+                                                            allow_blank=source_blank)
+
+            category_blank = not self.retrieve_request_group().groupmeta.category_required
+            self.fields['category'] = serializers.ChoiceField(choices=self.retrieve_categories(),
+                                                              allow_blank=category_blank)
+
+            self.fields['rule_content'].required = True
+
         except AttributeError:
             pass
 
@@ -245,14 +253,15 @@ class YaraRuleSerializer(serializers.Serializer):
         rule_kwargs['created'] = datetime.datetime.now()
 
         for attr, value in rule_kwargs.items():
-            validated_data[attr] = value
+            if attr not in ('comments',):
+                validated_data[attr] = value
 
         # Ensure status is designated
         validated_data['status'] = validated_data.get('status', YaraRule.INACTIVE_STATUS)
 
-        # If guest account, set status to pending
-        if not group_admin(self.retrieve_request_user()):
-            validated_data['status'] = YaraRule.PENDING_STATUS
+        # If guest account, set status to pre-determined value
+        if not group_admin(self.context.get('request')):
+            validated_data['status'] = self.retrieve_request_group().groupmeta.nonprivileged_submission_status
 
         # Save the new rule and return as response
         new_rule = YaraRule(**validated_data)
