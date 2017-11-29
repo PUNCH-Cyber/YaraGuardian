@@ -1,8 +1,10 @@
+from urllib.parse import urlencode
+
 from django.test import TestCase
 from django.core.urlresolvers import reverse, resolve
-from rest_framework.test import APIRequestFactory, force_authenticate
-
 from django.contrib.auth.models import Group
+
+from rest_framework.test import APIRequestFactory, force_authenticate
 
 from core.models import GroupMeta
 
@@ -101,8 +103,8 @@ class RulesetStatsViewTestCase(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.user1 = generate_test_user(username='RULE_TESTER_0001')
-        cls.user2 = generate_test_user(username='RULE_TESTER_0002')
+        cls.user1 = generate_test_user(username='VIEW_TESTER_0001')
+        cls.user2 = generate_test_user(username='VIEW_TESTER_0002')
         
         cls.group1 = cls.user1.groups.get()
         cls.group2 = cls.user2.groups.get()
@@ -199,17 +201,155 @@ class RulesetExportViewTestCase(TestCase):
 
 
 class RulesetBulkEditViewTestCase(TestCase):
-    # TO-DO
 
     def setUp(self):
-        self.url = reverse('ruleset-bulk')
         self.factory = APIRequestFactory()
-        self.view = RulesetBulkEditView
+        self.view = RulesetBulkEditView.as_view()
+
+        for value in range(1, 4):
+            rule = YaraRule.objects.create(name='BulkRule{:04x}'.format(value),
+                                           strings={},
+                                           condition=[],
+                                           tags=[],
+                                           scopes=[],
+                                           imports=[],
+                                           metadata={},
+                                           dependencies=[],
+                                           logic_hash='',
+                                           owner=self.group1,
+                                           submitter=self.user1,
+                                           source='',
+                                           category='',
+                                           status=YaraRule.ACTIVE_STATUS)
+            rule.save()
 
     @classmethod
     def setUpTestData(cls):
-        cls.user = generate_test_user()
-        cls.group = cls.user.groups.get()
+        cls.user1 = generate_test_user(username='VIEW_TESTER_0001')
+        cls.user2 = generate_test_user(username='VIEW_TESTER_0002')
+        
+        cls.group1 = cls.user1.groups.get()
+        cls.group2 = cls.user2.groups.get()
+
+        # Add user2 to group1
+        cls.user2.groups.add(cls.group1)
+
+        cls.group1.groupmeta.source_options.append('Bulk Updates')
+        cls.group1.groupmeta.category_options.append('Testing')
+        cls.group1.groupmeta.save()
+
+        cls.data = {'source': 'Bulk Updates',
+                    'category': 'Testing',
+                    'rule_content': ['rule dummy { condition: false }'],
+                    'status': YaraRule.ACTIVE_STATUS}
+
+    def test_admin_post_request(self):
+        url = reverse('ruleset-bulk', kwargs={'group_name': self.group1.name})
+        request = self.factory.post(url, self.data)
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user1)
+        response = self.view(request, group_name=self.group1.name)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['rule_upload_count'], 1)
+
+        rule = YaraRule.objects.get(name='dummy')
+        self.assertEqual(rule.status, YaraRule.ACTIVE_STATUS)
+
+    def test_nonadmin_post_request(self):
+        url = reverse('ruleset-bulk', kwargs={'group_name': self.group1.name})
+        request = self.factory.post(url, self.data)
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user2)
+        response = self.view(request, group_name=self.group1.name)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['rule_upload_count'], 1)
+
+        rule = YaraRule.objects.get(name='dummy')
+        self.assertEqual(rule.status, self.group1.groupmeta.nonprivileged_submission_status)
+
+    def test_unauthenticated_post_request(self):
+        url = reverse('ruleset-bulk', kwargs={'group_name': self.group1.name})
+        request = self.factory.post(url)
+        request.resolver_match = resolve(url)
+        response = self.view(request, group_name=self.group1.name)
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_valid_admin_patch_request(self):
+        url = reverse('ruleset-bulk', kwargs={'group_name': self.group1.name})
+        query_string = urlencode({'name_startswith': 'BulkRule'})
+        request = self.factory.patch(url + '?' + query_string, {'add_tags': ['UPDATED']})
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user1)
+        response = self.view(request, group_name=self.group1.name)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['modified_rule_count'], 3)
+
+    def test_invalid_admin_patch_request(self):
+        url = reverse('ruleset-bulk', kwargs={'group_name': self.group1.name})
+        request = self.factory.patch(url, {'add_tags': ['UPDATED']})
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user1)
+        response = self.view(request, group_name=self.group1.name)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['modified_rule_count'], 0)
+
+    def test_nonadmin_patch_request(self):
+        url = reverse('ruleset-bulk', kwargs={'group_name': self.group1.name})
+        request = self.factory.patch(url)
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user2)
+        response = self.view(request, group_name=self.group1.name)
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_unauthenticated_patch_request(self):
+        url = reverse('ruleset-bulk', kwargs={'group_name': self.group1.name})
+        request = self.factory.patch(url)
+        request.resolver_match = resolve(url)
+        response = self.view(request, group_name=self.group1.name)
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_valid_admin_delete_request(self):
+        url = reverse('ruleset-bulk', kwargs={'group_name': self.group1.name})
+        query_string = urlencode({'name_startswith': 'BulkRule'})
+        request = self.factory.delete(url + '?' + query_string)
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user1)
+        response = self.view(request, group_name=self.group1.name)
+
+        self.assertEqual(response.data['deleted_rule_count'], 3)
+
+    def test_invalid_admin_delete_request(self):
+        url = reverse('ruleset-bulk', kwargs={'group_name': self.group1.name})
+        request = self.factory.delete(url)
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user1)
+        response = self.view(request, group_name=self.group1.name)
+
+        self.assertEqual(response.data['deleted_rule_count'], 0)
+
+    def test_nonadmin_delete_request(self):
+        url = reverse('ruleset-bulk', kwargs={'group_name': self.group1.name})
+        request = self.factory.delete(url)
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user2)
+        response = self.view(request, group_name=self.group1.name)
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_unauthenticated_delete_request(self):
+        url = reverse('ruleset-bulk', kwargs={'group_name': self.group1.name})
+        request = self.factory.delete(url)
+        request.resolver_match = resolve(url)
+        response = self.view(request, group_name=self.group1.name)
+
+        self.assertEqual(response.status_code, 403)
 
 
 class RulesetDeconflictViewTestCase(TestCase):
