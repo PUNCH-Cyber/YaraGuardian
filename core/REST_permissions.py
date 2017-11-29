@@ -49,7 +49,7 @@ class IsGroupMember(BasePermission):
         return group_member(request)
 
 
-class IsGroupMemberOrReadOnly(BasePermission):
+class IsGroupMemberOrPublicReadOnly(BasePermission):
 
     def has_permission(self, request, view):
         if group_member(request):
@@ -69,7 +69,7 @@ class IsGroupAdmin(BasePermission):
         return False
 
 
-class IsGroupAdminOrReadOnly(BasePermission):
+class IsGroupAdminOrMemberReadOnly(BasePermission):
 
     def has_permission(self, request, view):
         if group_member(request):
@@ -81,7 +81,7 @@ class IsGroupAdminOrReadOnly(BasePermission):
         return False
 
 
-class IsGroupAdminOrAddMethod(BasePermission):
+class IsGroupAdminOrMemberAddMethod(BasePermission):
 
     def has_permission(self, request, view):
         if group_member(request):
@@ -102,7 +102,7 @@ class IsGroupOwner(BasePermission):
         return False
 
 
-class IsGroupOwnerOrReadOnly(BasePermission):
+class IsGroupOwnerOrMemberReadOnly(BasePermission):
 
     def has_permission(self, request, view):
         if group_member(request):
@@ -110,5 +110,16 @@ class IsGroupOwnerOrReadOnly(BasePermission):
                 return True
             elif request.method in permissions.SAFE_METHODS:
                 return True
+
+        return False
+
+
+class IsGroupOwnerOrPublicReadOnly(BasePermission):
+
+    def has_permission(self, request, view):
+        if group_member(request) and group_owner(request):
+            return True
+        elif request.method in permissions.SAFE_METHODS:
+            return True
 
         return False

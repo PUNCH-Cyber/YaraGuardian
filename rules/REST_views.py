@@ -14,8 +14,8 @@ from rest_framework.pagination import PageNumberPagination
 from core.services import get_group_or_404
 
 from core.REST_permissions import (IsGroupMember,
-                                   IsGroupAdminOrReadOnly,
-                                   IsGroupAdminOrAddMethod,
+                                   IsGroupAdminOrMemberReadOnly,
+                                   IsGroupAdminOrMemberAddMethod,
                                    group_admin)
 
 from .REST_filters import YaraRuleFilter
@@ -97,7 +97,7 @@ class RulesetView(CreateAPIView):
     Create new rule.
     """
     serializer_class = YaraRuleSerializer
-    permission_classes = [IsGroupAdminOrAddMethod]
+    permission_classes = [IsGroupAdminOrMemberAddMethod]
 
 
 class RulesetSearchView(ListAPIView):
@@ -151,7 +151,7 @@ class RulesetDeconflictView(APIView):
     """
     Deconflict / Merge Logic Collisions
     """
-    permission_classes = [IsGroupAdminOrReadOnly]
+    permission_classes = [IsGroupAdminOrMemberReadOnly]
 
     def patch(self, request, group_name):
         group_context = get_group_or_404(group_name)
@@ -201,7 +201,7 @@ class RulesetBulkEditView(APIView):
     delete:
     Delete rules in bulk to specified ruleset.
     """
-    permission_classes = [IsGroupAdminOrAddMethod]
+    permission_classes = [IsGroupAdminOrMemberAddMethod]
 
     def post(self, request, group_name):
         response_content= {'errors': [],
@@ -320,7 +320,7 @@ class RuleDetailsView(APIView):
     Delete specified rule.
     """
     serializer_class = YaraRuleSerializer
-    permission_classes = [IsGroupAdminOrReadOnly]
+    permission_classes = [IsGroupAdminOrMemberReadOnly]
 
     def get(self, request, group_name, rule_pk):
         group_context = get_group_or_404(group_name)
@@ -365,7 +365,7 @@ class RuleTagsView(APIView):
     """
     Delete tag from specified rule.
     """
-    permission_classes = [IsGroupAdminOrReadOnly]
+    permission_classes = [IsGroupAdminOrMemberReadOnly]
 
     def delete(self, request, group_name, rule_pk, tag):
         group_context = get_group_or_404(group_name)
@@ -384,7 +384,7 @@ class RuleMetadataView(APIView):
     """
     Delete metadata from specified rule.
     """
-    permission_classes = [IsGroupAdminOrReadOnly]
+    permission_classes = [IsGroupAdminOrMemberReadOnly]
 
     def delete(self, request, group_name, rule_pk, metakey):
         group_context = get_group_or_404(group_name)
@@ -407,7 +407,7 @@ class RuleCommentsView(APIView):
     Add comment to specified rule.
     """
     serializer_class = YaraRuleCommentSerializer
-    permission_classes = [IsGroupAdminOrReadOnly]
+    permission_classes = [IsGroupAdminOrMemberReadOnly]
 
     def get(self, request, group_name, rule_pk):
         group_context = get_group_or_404(group_name)
@@ -442,7 +442,7 @@ class RuleCommentDetailsView(APIView):
     Delete rule comment.
     """
     serializer_class = YaraRuleCommentSerializer
-    permission_classes = [IsGroupAdminOrReadOnly]
+    permission_classes = [IsGroupAdminOrMemberReadOnly]
 
     def get(self, request, group_name, rule_pk, comment_pk):
         group_context = get_group_or_404(group_name)
