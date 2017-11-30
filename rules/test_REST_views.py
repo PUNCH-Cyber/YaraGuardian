@@ -8,7 +8,7 @@ from rest_framework.test import APIRequestFactory, force_authenticate
 
 from core.models import GroupMeta
 
-from .models import YaraRule
+from .models import YaraRule, YaraRuleComment
 from .testing_core import generate_test_user
 
 from .REST_views import (RulesetsListingView,
@@ -353,82 +353,388 @@ class RulesetBulkEditViewTestCase(TestCase):
 
 
 class RulesetDeconflictViewTestCase(TestCase):
-    # TO-DO
 
     def setUp(self):
-        self.url = reverse('ruleset-deconflict')
         self.factory = APIRequestFactory()
-        self.view = RulesetDeconflictView
+        self.view = RulesetDeconflictView.as_view()
 
     @classmethod
     def setUpTestData(cls):
-        cls.user = generate_test_user()
-        cls.group = cls.user.groups.get()
+        cls.user1 = generate_test_user(username='VIEW_TESTER_0001')
+        cls.user2 = generate_test_user(username='VIEW_TESTER_0002')
+        
+        cls.group1 = cls.user1.groups.get()
+        cls.group2 = cls.user2.groups.get()
+
+        # Add user2 to group1
+        cls.user2.groups.add(cls.group1)
+
+    def test_admin_patch_request(self):
+        url = reverse('ruleset-deconflict', kwargs={'group_name': self.group1.name})
+        request = self.factory.patch(url)
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user1)
+        response = self.view(request, group_name=self.group1.name)
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_nonadmin_patch_request(self):
+        url = reverse('ruleset-deconflict', kwargs={'group_name': self.group1.name})
+        request = self.factory.patch(url)
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user2)
+        response = self.view(request, group_name=self.group1.name)
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_unauthenticated_patch_request(self):
+        url = reverse('ruleset-deconflict', kwargs={'group_name': self.group1.name})
+        request = self.factory.patch(url)
+        request.resolver_match = resolve(url)
+        response = self.view(request, group_name=self.group1.name)
+
+        self.assertEqual(response.status_code, 403)
 
 
 class RuleDetailsViewTestCase(TestCase):
-    # TO-DO
 
     def setUp(self):
-        self.url = reverse('ruleset-details')
         self.factory = APIRequestFactory()
-        self.view = RuleDetailsView
+        self.view = RuleDetailsView.as_view()
+
+        self.rule = YaraRule.objects.create(name='dummy',
+                                            strings={},
+                                            condition=[],
+                                            tags=[],
+                                            scopes=[],
+                                            imports=[],
+                                            metadata={},
+                                            dependencies=[],
+                                            logic_hash='',
+                                            owner=self.group1,
+                                            submitter=self.user1,
+                                            source='',
+                                            category='',
+                                            status=YaraRule.ACTIVE_STATUS)
+
+        self.rule.save()
 
     @classmethod
     def setUpTestData(cls):
-        cls.user = generate_test_user()
-        cls.group = cls.user.groups.get()
+        cls.user1 = generate_test_user(username='VIEW_TESTER_0001')
+        cls.user2 = generate_test_user(username='VIEW_TESTER_0002')
+        
+        cls.group1 = cls.user1.groups.get()
+        cls.group2 = cls.user2.groups.get()
+
+        # Add user2 to group1
+        cls.user2.groups.add(cls.group1)
+
+    def test_member_get_request(self):
+        url = reverse('rule-details', kwargs={'group_name': self.group1.name, 'rule_pk': self.rule.id})
+        request = self.factory.get(url)
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user2)
+        response = self.view(request, group_name=self.group1.name, rule_pk=self.rule.id)
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['name'], self.rule.name)
+
+    def test_unauthenticated_get_request(self):
+        url = reverse('rule-details', kwargs={'group_name': self.group1.name, 'rule_pk': self.rule.id})
+        request = self.factory.get(url)
+        request.resolver_match = resolve(url)
+        response = self.view(request, group_name=self.group1.name, rule_pk=self.rule.id)
+        
+        self.assertEqual(response.status_code, 403)
+    """
+    def test_admin_put_request(self):
+        pass
+
+    def test_nonadmin_put_request(self):
+        pass
+
+    def test_unauthenticated_put_request(self):
+        pass
+
+    def test_admin_patch_request(self):
+        pass
+
+    def test_nonadmin_patch_request(self):
+        pass
+
+    def test_unauthenticated_patch_request(self):
+        pass
+    """
+    def test_admin_delete_request(self):
+        url = reverse('rule-details', kwargs={'group_name': self.group1.name, 'rule_pk': self.rule.id})
+        request = self.factory.delete(url)
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user1)
+        response = self.view(request, group_name=self.group1.name, rule_pk=self.rule.id)
+        
+        self.assertEqual(response.status_code, 204)
+        self.assertFalse(YaraRule.objects.filter(id=self.rule.id).exists())
+
+    def test_nonadmin_delete_request(self):
+        url = reverse('rule-details', kwargs={'group_name': self.group1.name, 'rule_pk': self.rule.id})
+        request = self.factory.delete(url)
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user2)
+        response = self.view(request, group_name=self.group1.name, rule_pk=self.rule.id)
+        
+        self.assertEqual(response.status_code, 403)
+
+    def test_unauthenticated_delete_request(self):
+        url = reverse('rule-details', kwargs={'group_name': self.group1.name, 'rule_pk': self.rule.id})
+        request = self.factory.delete(url)
+        request.resolver_match = resolve(url)
+        response = self.view(request, group_name=self.group1.name, rule_pk=self.rule.id)
+        
+        self.assertEqual(response.status_code, 403)
 
 
 class RuleTagsViewTestCase(TestCase):
-    # TO-DO
 
     def setUp(self):
-        self.url = reverse('ruleset-tags')
         self.factory = APIRequestFactory()
-        self.view = RuleTagsView
+        self.view = RuleTagsView.as_view()
+
+        self.rule = YaraRule.objects.create(name='dummy',
+                                            strings={},
+                                            condition=[],
+                                            tags=['tagged'],
+                                            scopes=[],
+                                            imports=[],
+                                            metadata={},
+                                            dependencies=[],
+                                            logic_hash='',
+                                            owner=self.group1,
+                                            submitter=self.user1,
+                                            source='',
+                                            category='',
+                                            status=YaraRule.ACTIVE_STATUS)
+
+        self.rule.save()
 
     @classmethod
     def setUpTestData(cls):
-        cls.user = generate_test_user()
-        cls.group = cls.user.groups.get()
+        cls.user1 = generate_test_user(username='VIEW_TESTER_0001')
+        cls.user2 = generate_test_user(username='VIEW_TESTER_0002')
+        
+        cls.group1 = cls.user1.groups.get()
+        cls.group2 = cls.user2.groups.get()
+
+        # Add user2 to group1
+        cls.user2.groups.add(cls.group1)
+
+    def test_admin_delete_request(self):
+        url = reverse('rule-tags', kwargs={'group_name': self.group1.name, 
+                                           'rule_pk': self.rule.id,
+                                           'tag': 'tagged'})
+        request = self.factory.delete(url)
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user1)
+        response = self.view(request, group_name=self.group1.name,
+                             rule_pk=self.rule.id, tag='tagged')
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['tags']), 0)
+        self.assertFalse('tagged' in YaraRule.objects.get(id=self.rule.id).tags)
+
+    def test_nonadmin_delete_request(self):
+        url = reverse('rule-tags', kwargs={'group_name': self.group1.name, 
+                                           'rule_pk': self.rule.id,
+                                           'tag': 'tagged'})
+        request = self.factory.delete(url)
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user2)
+        response = self.view(request, group_name=self.group1.name,
+                             rule_pk=self.rule.id, tag='tagged')
+        
+        self.assertEqual(response.status_code, 403)
+
+    def test_unauthenticated_delete_request(self):
+        url = reverse('rule-tags', kwargs={'group_name': self.group1.name, 
+                                           'rule_pk': self.rule.id,
+                                           'tag': 'tagged'})
+        request = self.factory.delete(url)
+        request.resolver_match = resolve(url)
+        response = self.view(request, group_name=self.group1.name,
+                             rule_pk=self.rule.id, tag='tagged')
+        
+        self.assertEqual(response.status_code, 403)
 
 
 class RuleMetadataViewTestCase(TestCase):
-    # TO-DO
 
     def setUp(self):
-        self.url = reverse('ruleset-metadata')
         self.factory = APIRequestFactory()
-        self.view = RuleMetadataView
+        self.view = RuleMetadataView.as_view()
+
+        self.rule = YaraRule.objects.create(name='dummy',
+                                            strings={},
+                                            condition=[],
+                                            tags=[],
+                                            scopes=[],
+                                            imports=[],
+                                            metadata={'key': 'value'},
+                                            dependencies=[],
+                                            logic_hash='',
+                                            owner=self.group1,
+                                            submitter=self.user1,
+                                            source='',
+                                            category='',
+                                            status=YaraRule.ACTIVE_STATUS)
+
+        self.rule.save()
 
     @classmethod
     def setUpTestData(cls):
-        cls.user = generate_test_user()
-        cls.group = cls.user.groups.get()
+        cls.user1 = generate_test_user(username='VIEW_TESTER_0001')
+        cls.user2 = generate_test_user(username='VIEW_TESTER_0002')
+        
+        cls.group1 = cls.user1.groups.get()
+        cls.group2 = cls.user2.groups.get()
+
+        # Add user2 to group1
+        cls.user2.groups.add(cls.group1)
+
+    def test_admin_delete_request(self):
+        url = reverse('rule-metadata', kwargs={'group_name': self.group1.name, 
+                                               'rule_pk': self.rule.id,
+                                               'metakey': 'key'})
+        request = self.factory.delete(url)
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user1)
+        response = self.view(request, group_name=self.group1.name,
+                             rule_pk=self.rule.id, metakey='key')
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['metadata'].keys()), 0)
+        self.assertFalse('key' in YaraRule.objects.get(id=self.rule.id).metadata)
+
+    def test_nonadmin_delete_request(self):
+        url = reverse('rule-metadata', kwargs={'group_name': self.group1.name, 
+                                               'rule_pk': self.rule.id,
+                                               'metakey': 'key'})
+        request = self.factory.delete(url)
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user2)
+        response = self.view(request, group_name=self.group1.name,
+                             rule_pk=self.rule.id, metakey='key')
+        
+        self.assertEqual(response.status_code, 403)
+
+    def test_unauthenticated_delete_request(self):
+        url = reverse('rule-metadata', kwargs={'group_name': self.group1.name, 
+                                               'rule_pk': self.rule.id,
+                                               'metakey': 'key'})
+        request = self.factory.delete(url)
+        request.resolver_match = resolve(url)
+        response = self.view(request, group_name=self.group1.name,
+                             rule_pk=self.rule.id, metakey='key')
+        
+        self.assertEqual(response.status_code, 403)
 
 
 class RuleCommentsViewTestCase(TestCase):
-    # TO-DO
 
     def setUp(self):
-        self.url = reverse('ruleset-comments')
         self.factory = APIRequestFactory()
-        self.view = RuleCommentsView
+        self.view = RuleCommentsView.as_view()
+
+        self.rule = YaraRule.objects.create(name='dummy',
+                                            strings={},
+                                            condition=[],
+                                            tags=[],
+                                            scopes=[],
+                                            imports=[],
+                                            metadata={},
+                                            dependencies=[],
+                                            logic_hash='',
+                                            owner=self.group1,
+                                            submitter=self.user1,
+                                            source='',
+                                            category='',
+                                            status=YaraRule.ACTIVE_STATUS)
+        self.rule.save()
+
+        self.comment = YaraRuleComment.objects.create(content='Comment Data',
+                                                      poster=self.user1,
+                                                      rule=self.rule)
+        self.comment.save()
 
     @classmethod
     def setUpTestData(cls):
-        cls.user = generate_test_user()
-        cls.group = cls.user.groups.get()
+        cls.user1 = generate_test_user(username='VIEW_TESTER_0001')
+        cls.user2 = generate_test_user(username='VIEW_TESTER_0002')
+        
+        cls.group1 = cls.user1.groups.get()
+        cls.group2 = cls.user2.groups.get()
+
+        # Add user2 to group1
+        cls.user2.groups.add(cls.group1)
+
+    def test_member_get_request(self):
+        url = reverse('rule-comments', kwargs={'group_name': self.group1.name, 
+                                               'rule_pk': self.rule.id})
+        request = self.factory.get(url)
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user2)
+        response = self.view(request, group_name=self.group1.name, rule_pk=self.rule.id)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['content'], 'Comment Data')
+
+    def test_unauthenticated_get_request(self):
+        url = reverse('rule-comments', kwargs={'group_name': self.group1.name, 
+                                               'rule_pk': self.rule.id})
+        request = self.factory.get(url)
+        request.resolver_match = resolve(url)
+        response = self.view(request, group_name=self.group1.name, rule_pk=self.rule.id)
+        
+        self.assertEqual(response.status_code, 403)
+
+    def test_admin_post_request(self):
+        url = reverse('rule-comments', kwargs={'group_name': self.group1.name, 
+                                               'rule_pk': self.rule.id})
+        request = self.factory.post(url, {'content': 'New Comment'})
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user1)
+        response = self.view(request, group_name=self.group1.name, rule_pk=self.rule.id)
+
+        self.assertEqual(response.status_code, 201)
+        self.assertTrue(YaraRuleComment.objects.filter(content='New Comment').exists())
+
+    def test_nonadmin_post_request(self):
+        url = reverse('rule-comments', kwargs={'group_name': self.group1.name, 
+                                               'rule_pk': self.rule.id})
+        request = self.factory.post(url, {})
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user2)
+        response = self.view(request, group_name=self.group1.name, rule_pk=self.rule.id)
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_unauthenticated_post_request(self):
+        url = reverse('rule-comments', kwargs={'group_name': self.group1.name, 
+                                               'rule_pk': self.rule.id})
+        request = self.factory.post(url, {})
+        request.resolver_match = resolve(url)
+        response = self.view(request, group_name=self.group1.name, rule_pk=self.rule.id)
+        
+        self.assertEqual(response.status_code, 403)
 
 
 class RuleCommentDetailsViewTestCase(TestCase):
     # TO-DO
 
     def setUp(self):
-        self.url = reverse('ruleset-comment-details')
+        self.url = reverse('rule-comment-details')
         self.factory = APIRequestFactory()
-        self.view = RuleCommentDetailsView
+        self.view = RuleCommentDetailsView.as_view()
 
     @classmethod
     def setUpTestData(cls):
