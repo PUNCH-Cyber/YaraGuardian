@@ -729,14 +729,137 @@ class RuleCommentsViewTestCase(TestCase):
 
 
 class RuleCommentDetailsViewTestCase(TestCase):
-    # TO-DO
 
     def setUp(self):
-        self.url = reverse('rule-comment-details')
         self.factory = APIRequestFactory()
         self.view = RuleCommentDetailsView.as_view()
 
+        self.rule = YaraRule.objects.create(name='dummy',
+                                            strings={},
+                                            condition=[],
+                                            tags=[],
+                                            scopes=[],
+                                            imports=[],
+                                            metadata={},
+                                            dependencies=[],
+                                            logic_hash='',
+                                            owner=self.group1,
+                                            submitter=self.user1,
+                                            source='',
+                                            category='',
+                                            status=YaraRule.ACTIVE_STATUS)
+        self.rule.save()
+
+        self.comment = YaraRuleComment.objects.create(content='Comment Data',
+                                                      poster=self.user1,
+                                                      rule=self.rule)
+
+        self.comment.save()
+
     @classmethod
     def setUpTestData(cls):
-        cls.user = generate_test_user()
-        cls.group = cls.user.groups.get()
+        cls.user1 = generate_test_user(username='VIEW_TESTER_0001')
+        cls.user2 = generate_test_user(username='VIEW_TESTER_0002')
+        
+        cls.group1 = cls.user1.groups.get()
+        cls.group2 = cls.user2.groups.get()
+
+        # Add user2 to group1
+        cls.user2.groups.add(cls.group1)
+
+    def test_member_get_request(self):
+        url = reverse('rule-comment-details', kwargs={'group_name': self.group1.name, 
+                                                      'rule_pk': self.rule.id,
+                                                      'comment_pk': self.comment.id})
+        request = self.factory.get(url)
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user2)
+        response = self.view(request, group_name=self.group1.name,
+                             rule_pk=self.rule.id, comment_pk=self.comment.id)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['content'], 'Comment Data')
+
+    def test_unauthenticated_get_request(self):
+        url = reverse('rule-comment-details', kwargs={'group_name': self.group1.name, 
+                                                      'rule_pk': self.rule.id,
+                                                      'comment_pk': self.comment.id})
+        request = self.factory.get(url)
+        request.resolver_match = resolve(url)
+        response = self.view(request, group_name=self.group1.name,
+                             rule_pk=self.rule.id, comment_pk=self.comment.id)
+        
+        self.assertEqual(response.status_code, 403)
+
+    def test_admin_put_request(self):
+        url = reverse('rule-comment-details', kwargs={'group_name': self.group1.name, 
+                                                      'rule_pk': self.rule.id,
+                                                      'comment_pk': self.comment.id})
+        request = self.factory.put(url, {'content': 'Updated Comment Data'})
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user1)
+        response = self.view(request, group_name=self.group1.name,
+                             rule_pk=self.rule.id, comment_pk=self.comment.id)
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['content'], 'Updated Comment Data')
+        self.assertEqual(YaraRuleComment.objects.get(id=self.comment.id).content, 'Updated Comment Data')
+
+    def test_nonadmin_put_request(self):
+        url = reverse('rule-comment-details', kwargs={'group_name': self.group1.name, 
+                                                      'rule_pk': self.rule.id,
+                                                      'comment_pk': self.comment.id})
+        request = self.factory.put(url, {'content': 'Updated Comment Data'})
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user2)
+        response = self.view(request, group_name=self.group1.name,
+                             rule_pk=self.rule.id, comment_pk=self.comment.id)
+        
+        self.assertEqual(response.status_code, 403)
+
+    def test_unauthenticated_put_request(self):
+        url = reverse('rule-comment-details', kwargs={'group_name': self.group1.name, 
+                                                      'rule_pk': self.rule.id,
+                                                      'comment_pk': self.comment.id})
+        request = self.factory.put(url, {'content': 'Updated Comment Data'})
+        request.resolver_match = resolve(url)
+        response = self.view(request, group_name=self.group1.name,
+                             rule_pk=self.rule.id, comment_pk=self.comment.id)
+        
+        self.assertEqual(response.status_code, 403)
+
+    def test_admin_delete_request(self):
+        url = reverse('rule-comment-details', kwargs={'group_name': self.group1.name, 
+                                                      'rule_pk': self.rule.id,
+                                                      'comment_pk': self.comment.id})
+        request = self.factory.delete(url)
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user1)
+        response = self.view(request, group_name=self.group1.name,
+                             rule_pk=self.rule.id, comment_pk=self.comment.id)
+
+        self.assertEqual(response.status_code, 204)
+        self.assertFalse(YaraRuleComment.objects.filter(id=self.comment.id).exists())
+
+    def test_nonadmin_delete_request(self):
+        url = reverse('rule-comment-details', kwargs={'group_name': self.group1.name, 
+                                                      'rule_pk': self.rule.id,
+                                                      'comment_pk': self.comment.id})
+        request = self.factory.delete(url)
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user2)
+        response = self.view(request, group_name=self.group1.name,
+                             rule_pk=self.rule.id, comment_pk=self.comment.id)
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_unauthenticated_delete_request(self):
+        url = reverse('rule-comment-details', kwargs={'group_name': self.group1.name, 
+                                                      'rule_pk': self.rule.id,
+                                                      'comment_pk': self.comment.id})
+        request = self.factory.delete(url)
+        request.resolver_match = resolve(url)
+        response = self.view(request, group_name=self.group1.name,
+                             rule_pk=self.rule.id, comment_pk=self.comment.id)
+        
+        self.assertEqual(response.status_code, 403)
