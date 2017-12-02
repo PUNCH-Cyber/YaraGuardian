@@ -1,3 +1,5 @@
+from urllib.parse import urlencode
+
 from django.test import TestCase
 from django.contrib.auth.models import Group
 from django.core.urlresolvers import reverse, resolve
@@ -258,31 +260,266 @@ class GroupDetailsViewTestCase(TestCase):
 
 
 class GroupMembersViewTestCase(TestCase):
-    # TO-DO
 
     def setUp(self):
-        self.url = reverse('group-members')
         self.factory = APIRequestFactory()
         self.view = GroupMembersView.as_view()
 
-    @classmethod
-    def setUpTestData(cls):
-        cls.user = generate_test_user()
-        cls.group = cls.user.groups.get()
+        self.user1 = generate_test_user(username='VIEW_TESTER_0001')
+        self.user2 = generate_test_user(username='VIEW_TESTER_0002')
+        self.user3 = generate_test_user(username='VIEW_TESTER_0003')
+        self.user4 = generate_test_user(username='VIEW_TESTER_0004')
+
+        self.group = Group.objects.create(name='CREATED_GROUP')
+        self.group.save()
+
+        group_meta = GroupMeta.objects.create(group=self.group, owner=self.user1)
+        group_meta.save()
+
+        self.user1.groups.add(self.group)
+        self.user2.groups.add(self.group)
+        self.user3.groups.add(self.group)
+
+        self.group.groupmeta.admins.add(self.user2)
+        self.group.groupmeta.save()
+
+    def test_owner_get_request(self):
+        url = reverse('group-members', kwargs={'group_name': self.group.name})
+        request = self.factory.get(url)
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user1)
+        response = self.view(request, group_name=self.group.name)
+        self.assertEqual(response.status_code, 200)
+
+    def test_admin_get_request(self):
+        url = reverse('group-members', kwargs={'group_name': self.group.name})
+        request = self.factory.get(url)
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user2)
+        response = self.view(request, group_name=self.group.name)
+        self.assertEqual(response.status_code, 403)
+
+    def test_member_get_request(self):
+        url = reverse('group-members', kwargs={'group_name': self.group.name})
+        request = self.factory.get(url)
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user3)
+        response = self.view(request, group_name=self.group.name)
+        self.assertEqual(response.status_code, 403)
+
+    def test_unauthenticated_get_request(self):
+        url = reverse('group-members', kwargs={'group_name': self.group.name})
+        request = self.factory.get(url)
+        request.resolver_match = resolve(url)
+        response = self.view(request, group_name=self.group.name)
+        self.assertEqual(response.status_code, 403)
+
+    def test_owner_patch_request(self):
+        url = reverse('group-members', kwargs={'group_name': self.group.name})
+        request = self.factory.patch(url, {'member': [self.user4.username]})
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user1)
+
+        self.assertFalse(self.group in self.user4.groups.all())
+        response = self.view(request, group_name=self.group.name)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(self.group in self.user4.groups.all())
+
+    def test_admin_patch_request(self):
+        url = reverse('group-members', kwargs={'group_name': self.group.name})
+        request = self.factory.patch(url, {'member': [self.user4.username]})
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user2)
+        response = self.view(request, group_name=self.group.name)
+        self.assertEqual(response.status_code, 403)
+
+    def test_member_patch_request(self):
+        url = reverse('group-members', kwargs={'group_name': self.group.name})
+        request = self.factory.patch(url, {'member': [self.user4.username]})
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user3)
+        response = self.view(request, group_name=self.group.name)
+        self.assertEqual(response.status_code, 403)
+
+    def test_unauthenticated_patch_request(self):
+        url = reverse('group-members', kwargs={'group_name': self.group.name})
+        request = self.factory.patch(url, {'member': [self.user4.username]})
+        request.resolver_match = resolve(url)
+        response = self.view(request, group_name=self.group.name)
+        self.assertEqual(response.status_code, 403)
+
+    def test_owner_delete_request(self):
+        url = reverse('group-members', kwargs={'group_name': self.group.name})
+        query_string = urlencode({'member': self.user3.username})
+        request = self.factory.delete(url + '?' + query_string)
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user1)
+
+        self.assertTrue(self.group in self.user3.groups.all())
+        response = self.view(request, group_name=self.group.name)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(self.group in self.user3.groups.all())
+
+    def test_admin_delete_request(self):
+        url = reverse('group-members', kwargs={'group_name': self.group.name})
+        query_string = urlencode({'member': self.user3.username})
+        request = self.factory.delete(url + '?' + query_string)
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user2)
+        response = self.view(request, group_name=self.group.name)
+        self.assertEqual(response.status_code, 403)
+
+    def test_member_delete_request(self):
+        url = reverse('group-members', kwargs={'group_name': self.group.name})
+        query_string = urlencode({'member': self.user3.username})
+        request = self.factory.delete(url + '?' + query_string)
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user3)
+        response = self.view(request, group_name=self.group.name)
+        self.assertEqual(response.status_code, 403)
+
+    def test_unauthenticated_delete_request(self):
+        url = reverse('group-members', kwargs={'group_name': self.group.name})
+        query_string = urlencode({'member': self.user3.username})
+        request = self.factory.delete(url + '?' + query_string)
+        request.resolver_match = resolve(url)
+        response = self.view(request, group_name=self.group.name)
+        self.assertEqual(response.status_code, 403)
 
 
 class GroupAdminsViewTestCase(TestCase):
-    # TO-DO
 
     def setUp(self):
-        self.url = reverse('group-admins')
         self.factory = APIRequestFactory()
         self.view = GroupAdminsView.as_view()
 
-    @classmethod
-    def setUpTestData(cls):
-        cls.user = generate_test_user()
-        cls.group = cls.user.groups.get()
+        self.user1 = generate_test_user(username='VIEW_TESTER_0001')
+        self.user2 = generate_test_user(username='VIEW_TESTER_0002')
+        self.user3 = generate_test_user(username='VIEW_TESTER_0003')
+        self.user4 = generate_test_user(username='VIEW_TESTER_0004')
+
+        self.group = Group.objects.create(name='CREATED_GROUP')
+        self.group.save()
+
+        group_meta = GroupMeta.objects.create(group=self.group, owner=self.user1)
+        group_meta.save()
+
+        self.user1.groups.add(self.group)
+        self.user2.groups.add(self.group)
+        self.user3.groups.add(self.group)
+
+        self.group.groupmeta.admins.add(self.user2)
+        self.group.groupmeta.save()
+
+    def test_owner_get_request(self):
+        url = reverse('group-admins', kwargs={'group_name': self.group.name})
+        request = self.factory.get(url)
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user1)
+        response = self.view(request, group_name=self.group.name)
+        self.assertEqual(response.status_code, 200)
+
+    def test_admin_get_request(self):
+        url = reverse('group-admins', kwargs={'group_name': self.group.name})
+        request = self.factory.get(url)
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user2)
+        response = self.view(request, group_name=self.group.name)
+        self.assertEqual(response.status_code, 403)
+
+    def test_member_get_request(self):
+        url = reverse('group-admins', kwargs={'group_name': self.group.name})
+        request = self.factory.get(url)
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user3)
+        response = self.view(request, group_name=self.group.name)
+        self.assertEqual(response.status_code, 403)
+
+    def test_unauthenticated_get_request(self):
+        url = reverse('group-admins', kwargs={'group_name': self.group.name})
+        request = self.factory.get(url)
+        request.resolver_match = resolve(url)
+        response = self.view(request, group_name=self.group.name)
+        self.assertEqual(response.status_code, 403)
+
+    def test_owner_patch_request(self):
+        url = reverse('group-admins', kwargs={'group_name': self.group.name})
+        request = self.factory.patch(url, {'admin': [self.user4.username]})
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user1)
+
+        self.assertFalse(self.group in self.user4.groups.all())
+        self.assertFalse(self.user4 in self.group.groupmeta.admins.all())
+        response = self.view(request, group_name=self.group.name)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(self.group in self.user4.groups.all())
+        self.assertTrue(self.user4 in self.group.groupmeta.admins.all())
+
+    def test_admin_patch_request(self):
+        url = reverse('group-admins', kwargs={'group_name': self.group.name})
+        request = self.factory.patch(url, {'admin': [self.user4.username]})
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user2)
+        response = self.view(request, group_name=self.group.name)
+        self.assertEqual(response.status_code, 403)
+
+    def test_member_patch_request(self):
+        url = reverse('group-admins', kwargs={'group_name': self.group.name})
+        request = self.factory.patch(url, {'admin': [self.user4.username]})
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user3)
+        response = self.view(request, group_name=self.group.name)
+        self.assertEqual(response.status_code, 403)
+
+    def test_unauthenticated_patch_request(self):
+        url = reverse('group-admins', kwargs={'group_name': self.group.name})
+        request = self.factory.patch(url, {'admin': [self.user4.username]})
+        request.resolver_match = resolve(url)
+        response = self.view(request, group_name=self.group.name)
+        self.assertEqual(response.status_code, 403)
+
+    def test_owner_delete_request(self):
+        url = reverse('group-admins', kwargs={'group_name': self.group.name})
+        query_string = urlencode({'admin': self.user2.username})
+        request = self.factory.delete(url + '?' + query_string)
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user1)
+
+        self.assertTrue(self.group in self.user2.groups.all())
+        self.assertTrue(self.user2 in self.group.groupmeta.admins.all())
+        response = self.view(request, group_name=self.group.name)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(self.user2 in self.group.groupmeta.admins.all())
+
+    def test_admin_delete_request(self):
+        url = reverse('group-admins', kwargs={'group_name': self.group.name})
+        query_string = urlencode({'admin': self.user2.username})
+        request = self.factory.delete(url + '?' + query_string)
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user2)
+        response = self.view(request, group_name=self.group.name)
+        self.assertEqual(response.status_code, 403)
+
+    def test_member_delete_request(self):
+        url = reverse('group-admins', kwargs={'group_name': self.group.name})
+        query_string = urlencode({'admin': self.user2.username})
+        request = self.factory.delete(url + '?' + query_string)
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user3)
+        response = self.view(request, group_name=self.group.name)
+        self.assertEqual(response.status_code, 403)
+
+    def test_unauthenticated_delete_request(self):
+        url = reverse('group-admins', kwargs={'group_name': self.group.name})
+        query_string = urlencode({'admin': self.user2.username})
+        request = self.factory.delete(url + '?' + query_string)
+        request.resolver_match = resolve(url)
+        response = self.view(request, group_name=self.group.name)
+        self.assertEqual(response.status_code, 403)
 
 
 class GroupSourcesViewTestCase(TestCase):
