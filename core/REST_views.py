@@ -13,6 +13,7 @@ from .services import get_group_or_404
 from .REST_permissions import (group_member,
                                IsGroupOwner,
                                IsGroupAdmin,
+                               IsGroupAdminOrMemberReadOnly,
                                IsGroupOwnerOrPublicReadOnly)
 
 from .REST_serializers import (PublicGroupSerializer,
@@ -110,7 +111,7 @@ class GroupDetailsView(APIView):
     delete:
     Delete specified group.
     """
-    permission_classes = [IsAuthenticated, IsGroupOwnerOrPublicReadOnly]
+    permission_classes = [IsGroupOwnerOrPublicReadOnly]
 
     def get(self, request, group_name):
         group_object = get_group_or_404(group_name)
@@ -271,7 +272,7 @@ class GroupSourcesView(APIView):
     delete:
     Remove specified sources from group.
     """
-    permission_classes = [IsGroupAdmin]
+    permission_classes = [IsGroupAdminOrMemberReadOnly]
 
     def get(self, request, group_name):
         group_object = get_group_or_404(group_name)
@@ -326,7 +327,7 @@ class GroupCategoriesView(APIView):
     delete:
     Remove specified categories from group.
     """
-    permission_classes = [IsGroupAdmin]
+    permission_classes = [IsGroupAdminOrMemberReadOnly]
 
     def get(self, request, group_name):
         group_object = get_group_or_404(group_name)
