@@ -447,25 +447,74 @@ class RuleDetailsViewTestCase(TestCase):
         response = self.view(request, group_name=self.group1.name, rule_pk=self.rule.id)
         
         self.assertEqual(response.status_code, 403)
-    """
+
     def test_admin_put_request(self):
-        pass
+        url = reverse('rule-details', kwargs={'group_name': self.group1.name, 'rule_pk': self.rule.id})
+        request = self.factory.put(url, {'source': '',
+                                         'category': '',
+                                         'rule_content': 'rule replaced { condition: false }',
+                                         'status': YaraRule.INACTIVE_STATUS})
+
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user1)
+        response = self.view(request, group_name=self.group1.name, rule_pk=self.rule.id)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(YaraRule.objects.get(id=self.rule.id).name == 'replaced')
 
     def test_nonadmin_put_request(self):
-        pass
+        url = reverse('rule-details', kwargs={'group_name': self.group1.name, 'rule_pk': self.rule.id})
+        request = self.factory.put(url, {'source': '',
+                                         'category': '',
+                                         'rule_content': 'rule replaced { condition: false }',
+                                         'status': YaraRule.INACTIVE_STATUS})
+
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user2)
+        response = self.view(request, group_name=self.group1.name, rule_pk=self.rule.id)
+        
+        self.assertEqual(response.status_code, 403)
 
     def test_unauthenticated_put_request(self):
-        pass
+        url = reverse('rule-details', kwargs={'group_name': self.group1.name, 'rule_pk': self.rule.id})
+        request = self.factory.put(url, {'source': '',
+                                         'category': '',
+                                         'rule_content': 'rule replaced { condition: false }',
+                                         'status': YaraRule.INACTIVE_STATUS})
+
+        request.resolver_match = resolve(url)
+        response = self.view(request, group_name=self.group1.name, rule_pk=self.rule.id)
+        
+        self.assertEqual(response.status_code, 403)
 
     def test_admin_patch_request(self):
-        pass
+        self.assertTrue(YaraRule.objects.get(id=self.rule.id).status == YaraRule.ACTIVE_STATUS)
+        url = reverse('rule-details', kwargs={'group_name': self.group1.name, 'rule_pk': self.rule.id})
+        request = self.factory.patch(url, {'status': YaraRule.INACTIVE_STATUS})
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user1)
+        response = self.view(request, group_name=self.group1.name, rule_pk=self.rule.id)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(YaraRule.objects.get(id=self.rule.id).status == YaraRule.INACTIVE_STATUS)
 
     def test_nonadmin_patch_request(self):
-        pass
+        url = reverse('rule-details', kwargs={'group_name': self.group1.name, 'rule_pk': self.rule.id})
+        request = self.factory.patch(url, {'status': YaraRule.INACTIVE_STATUS})
+        request.resolver_match = resolve(url)
+        force_authenticate(request, user=self.user2)
+        response = self.view(request, group_name=self.group1.name, rule_pk=self.rule.id)
+        
+        self.assertEqual(response.status_code, 403)
 
     def test_unauthenticated_patch_request(self):
-        pass
-    """
+        url = reverse('rule-details', kwargs={'group_name': self.group1.name, 'rule_pk': self.rule.id})
+        request = self.factory.patch(url, {'status': YaraRule.INACTIVE_STATUS})
+        request.resolver_match = resolve(url)
+        response = self.view(request, group_name=self.group1.name, rule_pk=self.rule.id)
+        
+        self.assertEqual(response.status_code, 403)
+
     def test_admin_delete_request(self):
         url = reverse('rule-details', kwargs={'group_name': self.group1.name, 'rule_pk': self.rule.id})
         request = self.factory.delete(url)
