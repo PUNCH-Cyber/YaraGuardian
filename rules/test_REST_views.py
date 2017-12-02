@@ -459,8 +459,9 @@ class RuleDetailsViewTestCase(TestCase):
         force_authenticate(request, user=self.user1)
         response = self.view(request, group_name=self.group1.name, rule_pk=self.rule.id)
 
+        self.rule.refresh_from_db()
         self.assertEqual(response.status_code, 200)
-        self.assertTrue(YaraRule.objects.get(id=self.rule.id).name == 'replaced')
+        self.assertTrue(self.rule.name == 'replaced')
 
     def test_nonadmin_put_request(self):
         url = reverse('rule-details', kwargs={'group_name': self.group1.name, 'rule_pk': self.rule.id})
@@ -488,15 +489,16 @@ class RuleDetailsViewTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
 
     def test_admin_patch_request(self):
-        self.assertTrue(YaraRule.objects.get(id=self.rule.id).status == YaraRule.ACTIVE_STATUS)
+        self.assertTrue(self.rule.status == YaraRule.ACTIVE_STATUS)
         url = reverse('rule-details', kwargs={'group_name': self.group1.name, 'rule_pk': self.rule.id})
         request = self.factory.patch(url, {'status': YaraRule.INACTIVE_STATUS})
         request.resolver_match = resolve(url)
         force_authenticate(request, user=self.user1)
         response = self.view(request, group_name=self.group1.name, rule_pk=self.rule.id)
 
+        self.rule.refresh_from_db()
         self.assertEqual(response.status_code, 200)
-        self.assertTrue(YaraRule.objects.get(id=self.rule.id).status == YaraRule.INACTIVE_STATUS)
+        self.assertTrue(self.rule.status == YaraRule.INACTIVE_STATUS)
 
     def test_nonadmin_patch_request(self):
         url = reverse('rule-details', kwargs={'group_name': self.group1.name, 'rule_pk': self.rule.id})
@@ -587,9 +589,10 @@ class RuleTagsViewTestCase(TestCase):
         response = self.view(request, group_name=self.group1.name,
                              rule_pk=self.rule.id, tag='tagged')
         
+        self.rule.refresh_from_db()
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['tags']), 0)
-        self.assertFalse('tagged' in YaraRule.objects.get(id=self.rule.id).tags)
+        self.assertFalse('tagged' in self.rule.tags)
 
     def test_nonadmin_delete_request(self):
         url = reverse('rule-tags', kwargs={'group_name': self.group1.name, 
@@ -659,9 +662,10 @@ class RuleMetadataViewTestCase(TestCase):
         response = self.view(request, group_name=self.group1.name,
                              rule_pk=self.rule.id, metakey='key')
         
+        self.rule.refresh_from_db()
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['metadata'].keys()), 0)
-        self.assertFalse('key' in YaraRule.objects.get(id=self.rule.id).metadata)
+        self.assertFalse('key' in self.rule.metadata)
 
     def test_nonadmin_delete_request(self):
         url = reverse('rule-metadata', kwargs={'group_name': self.group1.name, 
@@ -850,9 +854,10 @@ class RuleCommentDetailsViewTestCase(TestCase):
         response = self.view(request, group_name=self.group1.name,
                              rule_pk=self.rule.id, comment_pk=self.comment.id)
         
+        self.comment.refresh_from_db()
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['content'], 'Updated Comment Data')
-        self.assertEqual(YaraRuleComment.objects.get(id=self.comment.id).content, 'Updated Comment Data')
+        self.assertEqual(self.comment.content, 'Updated Comment Data')
 
     def test_nonadmin_put_request(self):
         url = reverse('rule-comment-details', kwargs={'group_name': self.group1.name, 
