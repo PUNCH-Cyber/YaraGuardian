@@ -1,7 +1,7 @@
 FROM ubuntu:16.04
 MAINTAINER Adam Trask ”adam@punchcyber.com”
 
-ENV LANG='C.UTF-8' LC_ALL='C.UTF-8' LANGUAGE='C.UTF-8' NODE_VERSION='7.6.0'
+ENV LANG='C.UTF-8' LC_ALL='C.UTF-8' LANGUAGE='C.UTF-8' NODE_VERSION='8.0.0'
 ENV API_DIR='/usr/local/YaraGuardian' API_USER='YaraManager' API_GROUP='YaraManager'
 
 ADD . ${API_DIR}
@@ -54,4 +54,5 @@ RUN groupadd -r ${API_USER} \
 
 EXPOSE 8080
 USER ${API_USER}
+
 CMD PYTHONUNBUFFERED=1 gunicorn -k gevent --bind=0.0.0.0:8080 --access-logfile - --error-logfile - YaraGuardian.wsgi:application
