@@ -8,7 +8,7 @@ django-rest-framework-social-oauth2==1.0.4
 drfdocs==0.0.11
 Markdown==2.6.8
 ply==3.9
-psycopg2==2.6.1
+psycopg2==2.7.1
 Pygments==2.2.0
 pyjwkest==1.3.2
 python-dateutil==2.6.1
