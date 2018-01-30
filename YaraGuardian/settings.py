@@ -287,10 +287,10 @@ else:
     SECURE_REDIRECT_EXEMPT = retrieve_setting('SECURE_REDIRECT_EXEMPT', arrayset=True, defaultset=True, defaultval=[])
 
 SERVE_STATIC = retrieve_setting('SERVE_STATIC', boolset=True, defaultset=True, defaultval='False')
+
 if SERVE_STATIC:
     # Load whitenoise to serve staticfiles
-    WHITENOISE_MIDDLEWARE = ('whitenoise.middleware.WhiteNoiseMiddleware', )
-    MIDDLEWARE_CLASSES = WHITENOISE_MIDDLEWARE + MIDDLEWARE_CLASSES
+    MIDDLEWARE_CLASSES.insert(2, 'whitenoise.middleware.WhiteNoiseMiddleware')
 
     # Enable GZIP functionality for static files
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
