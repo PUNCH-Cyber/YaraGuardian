@@ -289,8 +289,11 @@ else:
 SERVE_STATIC = retrieve_setting('SERVE_STATIC', boolset=True, defaultset=True, defaultval='False')
 
 if SERVE_STATIC:
-    # Load whitenoise to serve staticfiles
-    MIDDLEWARE_CLASSES.insert(2, 'whitenoise.middleware.WhiteNoiseMiddleware')
+    # Disable Django's staticfiles handling in favor of WhiteNoise
+    INSTALLED_APPS.insert(INSTALLED_APPS.index('django.contrib.staticfiles'), 'whitenoise.runserver_nostatic')
+
+    # Load whitenoise middleware to serve staticfiles
+    MIDDLEWARE_CLASSES.insert(MIDDLEWARE_CLASSES.index('django.middleware.security.SecurityMiddleware') + 1, 'whitenoise.middleware.WhiteNoiseMiddleware')
 
     # Enable GZIP functionality for static files
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
