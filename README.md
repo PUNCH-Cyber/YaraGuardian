@@ -47,10 +47,7 @@ Installation and Configuration Instructions (Development environment)
 
 
 2. Settings are specified either via ENV variables or the config.json file
-    * Default behavior is to use ENV variables
-    * In order to use the config.json file instead, you must:
-        - comment-out/remove line 22 in YaraGuardian/settings.py
-        - uncomment lines 25-26 in YaraGuardian/settings.py
+    * Any ENV variables specified will override values that are present in the config.json file
 
 
 3. Use the Django manage.py to create initial tables and superuser
@@ -63,7 +60,7 @@ Installation and Configuration Instructions (Development environment)
     *  python manage.py runserver 0.0.0.0:8000
 
 
-Installation and Configuration Instructions (Docker Example)
+Installation and Configuration Instructions (Docker Debug Example)
 ---------------------------------------------------------------------
 1. Build the image
     * docker build -t yara-guardian-image .
@@ -75,7 +72,7 @@ Installation and Configuration Instructions (Docker Example)
     * docker run --name=yara-guardian-postgres --network=yara-guardian-network --ip=192.168.0.5 -e POSTGRES_DB=yara_guardian -e POSTGRES_USER=yara_guardian -e POSTGRES_PASSWORD=yara_guardian_password -d postgres
 
 4. Run a Yara Guardian container
-    * docker run --name=yara-guardian --network=yara-guardian-network -p 8080:8080 -e DATABASE_HOST=192.168.0.5 -e ALLOWED_HOSTS=127.0.0.1 -e SERVE_STATIC=True -d yara-guardian-image
+    * docker run --name=yara-guardian --network=yara-guardian-network -p 8080:8080 -e DATABASE_HOST=192.168.0.5 -e ALLOWED_HOSTS=127.0.0.1 -e SERVE_STATIC=True -e DEBUG=True -d yara-guardian-image
 
 
 Configurable settings
