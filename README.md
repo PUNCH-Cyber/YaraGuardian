@@ -63,6 +63,21 @@ Installation and Configuration Instructions (Development environment)
     *  python manage.py runserver 0.0.0.0:8000
 
 
+Installation and Configuration Instructions (Docker Example)
+---------------------------------------------------------------------
+1. Build the image
+    * docker build -t yara-guardian-image .
+
+2. Create network for Yara Guardian and a PSQL instance
+    * docker network create -d bridge yara-guardian-network --subnet=192.168.0.0/16
+
+3. Run a PSQL docker container
+    * docker run --name=yara-guardian-postgres --network=yara-guardian-network --ip=192.168.0.5 -e POSTGRES_DB=yara_guardian -e POSTGRES_USER=yara_guardian -e POSTGRES_PASSWORD=yara_guardian_password -d postgres
+
+4. Run a Yara Guardian container
+    * docker run --name=yara-guardian --network=yara-guardian-network -p 8080:8080 -e DATABASE_HOST=192.168.0.5 -e ALLOWED_HOSTS=127.0.0.1 -e SERVE_STATIC=True -d yara-guardian-image
+
+
 Configurable settings
 ---------------------
 The following are the available configurable settings to be specified via environment variables or the config.json file:
