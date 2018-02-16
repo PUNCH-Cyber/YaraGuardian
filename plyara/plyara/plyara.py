@@ -299,9 +299,9 @@ class ParserInterpreter:
                     continue
 
                 # Check if term is a filesize reference
-                if term in ('MB', 'KB'):
+                if (len(term) > 2) and (term[-2:] in ('MB', 'KB')):
                     try:
-                        int(previous_term)
+                        int(term[:-2])
                     except ValueError:
                         pass
                     else:
@@ -551,6 +551,7 @@ class YaraLexerModule(object):
         'EQUIVALENT',
         'DOTDOT',
         'HEXNUM',
+        'FILESIZE_CONDITION',
         'NUM',
         'COMMENT',
         'MCOMMENT'
@@ -751,6 +752,11 @@ class YaraLexerModule(object):
 
     def t_STRINGNAME_ARRAY(self, t):
         r'@[0-9a-zA-Z\-_*]*'
+        t.value = t.value
+        return t
+
+    def t_FILESIZE_CONDITION(self, t):
+        r"\d+[KM]B"
         t.value = t.value
         return t
 
@@ -955,6 +961,7 @@ class YaraParser(object):
 
     def p_condition(self, p):
         '''term : ID
+                | FILESIZE_CONDITION
                 | STRING
                 | NUM
                 | HEXNUM
