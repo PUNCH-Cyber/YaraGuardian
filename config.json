@@ -1,6 +1,6 @@
 {
   "DEBUG": "False",
-  "SERVE_STATIC": "True",
+  "SERVE_STATIC": "False",
   "ALLOWED_HOSTS": "127.0.0.1",
   "SECRET_KEY": "DEVELOPER_MODE_CHANGE_ME",
   "DATABASE_NAME": "yara_guardian",

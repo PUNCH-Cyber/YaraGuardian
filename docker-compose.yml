@@ -1,0 +1,38 @@
+version: '3'
+
+services:
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./static:/static
+      - ./configs/nginx:/etc/nginx/conf.d  
+    depends_on:
+      - web
+
+  web:
+    build: .
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DATABASE_HOST=db
+      - DATABASE_NAME=postgres
+      - DATABASE_USER=postgres
+      - DATABASE_PASS=
+    command: python3 /usr/local/YaraGuardian/manage.py migrate --noinput
+    command: gunicorn -k gevent --bind=0.0.0.0:8080 --access-logfile - --error-logfile - YaraGuardian.wsgi:application
+    volumes:
+      - .:/usr/local/YaraGuardian
+    expose:
+      - "8080"
+    depends_on:
+      - db
+
+  db:
+    image: postgres:10.1
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+
+volumes:
+  postgres_data:
