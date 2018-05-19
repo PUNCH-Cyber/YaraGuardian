@@ -32,6 +32,7 @@ Unipath = "*"
 "b1d46b9" = {path = "./plyara", editable = true}
 
 [dev-packages]
+coveralls = "*"
 
 [requires]
 python_version = "3.5"

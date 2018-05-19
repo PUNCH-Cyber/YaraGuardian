@@ -14,17 +14,16 @@ env:
   -DEBUG=True
 
 before_install:
-  - pip3 install -r requirements.txt
+  - pip3 install pipenv
 
 install:
-  - cd plyara && python3 setup.py install
-  - pip3 install coveralls
+  - pipenv install --deploy --system --dev
 
 before_script:
   - psql -U postgres -d template1 -c "CREATE EXTENSION hstore;"
   - psql -U postgres -c "CREATE DATABASE ${DATABASE_NAME};"
   - psql -U postgres -c "CREATE USER ${DATABASE_USER} WITH PASSWORD '${DATABASE_PASS}' CREATEDB;"
-  - cd .. && python3 manage.py migrate
+  - python3 manage.py migrate
 
 script:
   - python3 manage.py test

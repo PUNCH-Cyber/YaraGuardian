@@ -86,7 +86,7 @@ cd ${INSTALL_DIR}
 echo "Installing Python dependencies"
 export PIPENV_VENV_IN_PROJECT=true
 pip3 install pipenv
-pipenv install
+pipenv install --deploy
 
 
 # Install dependencies

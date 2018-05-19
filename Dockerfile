@@ -41,7 +41,7 @@ RUN echo "Installing NodeJS version ${NODE_VERSION}" \
   && ln -sf /usr/local/n/versions/node/${NODE_VERSION}/bin/node /usr/bin/node \
   && echo "Installing python requirements..." \
   && pip3 install pipenv \
-  && pipenv install --system \
+  && pipenv install --deploy --system \
   && echo "Installing front-end components" \
   && npm install yarn -g \
   && yarn \
