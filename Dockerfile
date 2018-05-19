@@ -27,12 +27,6 @@ RUN apt-get update \
 ############################
 ### Install Dependencies ###
 ############################
-WORKDIR ${API_DIR}/plyara
-RUN python3 setup.py test \
-  && python3 setup.py install \
-  && rm -r ${API_DIR}/plyara \
-  && rm -r ${API_DIR}/configs
-
 WORKDIR ${API_DIR}
 RUN echo "Installing NodeJS version ${NODE_VERSION}" \
   && npm cache clean -f \
