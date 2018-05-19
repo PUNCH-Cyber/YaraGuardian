@@ -50,14 +50,22 @@ Installation and Configuration Instructions (Development environment)
     * Any ENV variables specified will override values that are present in the config.json file
 
 
-3. Use the Django manage.py to create initial tables and superuser
-    * source .pyenv/bin/activate
+3. Activate python environment
+    * pipenv shell
+
+
+4. Use the Django manage.py to create initial tables and superuser
     * python manage.py migrate
     * python manage.py createsuperuser
 
 
-4. Run the server
-    *  python manage.py runserver 0.0.0.0:8000
+4. Collect static files
+    * python manage.py collectstatic
+
+
+5. Run the server
+    * python manage.py runserver 0.0.0.0:8000 -OR- gunicorn YaraGuardian.wsgi --bind=0.0.0.0:8000
+    * make sure to set SERVE_STATIC=True if DEBUG=False and you are not using another method for static file serving like Nginx
 
 
 Installation and Configuration Instructions (Docker Example)

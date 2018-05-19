@@ -295,8 +295,6 @@ if SERVE_STATIC:
     # Load whitenoise middleware to serve staticfiles
     MIDDLEWARE_CLASSES.insert(MIDDLEWARE_CLASSES.index('django.middleware.security.SecurityMiddleware') + 1, 'whitenoise.middleware.WhiteNoiseMiddleware')
 
-    # Enable GZIP functionality for static files
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Social Authentication Configurations
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = retrieve_setting('GOOGLE_OAUTH2_KEY', defaultset=True, defaultval=None)

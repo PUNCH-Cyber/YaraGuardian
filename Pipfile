@@ -24,13 +24,12 @@ greenlet= "*"
 gevent = "*"
 gunicorn = "*"
 whitenoise = "*"
-Django = "==1.11"
+Django = ">=1.11,<2.0"
 Markdown = "*"
 Pygments = "*"
 SQLAlchemy = "*"
 Unipath = "*"
-celery = "*"
-django-celery-beat = "*"
+"b1d46b9" = {path = "./plyara", editable = true}
 
 [dev-packages]
 

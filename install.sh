@@ -30,15 +30,13 @@ else
     INSTALL_DIR=${PWD}
 fi
 
-PYENV_PATH=${INSTALL_DIR}/.pyenv
-
 apt-get update
 apt-get -y upgrade
 
 ####################################
 ### Install Python3 dependencies ###
 ####################################
-echo "Installing Python 3 and other dependencies"
+echo "Installing Python 3 and other system dependencies"
 apt-get install -y python3-all-dev libpq-dev python3-pip
 
 #####################################
@@ -66,19 +64,6 @@ sudo -u postgres psql -d template1 -c "CREATE EXTENSION IF NOT EXISTS hstore"
 sudo -u postgres psql -c "CREATE DATABASE ${PSQL_DATABASE}"
 sudo -u postgres psql -c "CREATE USER ${PSQL_USERNAME} WITH PASSWORD '${PSQL_PASSWORD}' CREATEDB"
 
-#####################################################
-### Install and configure Py3 virtual environment ###
-#####################################################
-echo "Installing and Configuring Python3 Virtual Environment"
-pip3 install virtualenv --quiet
-virtualenv ${PYENV_PATH}
-
-source ${PYENV_PATH}/bin/activate
-pip install -r ${INSTALL_DIR}/requirements.txt
-
-cd ${INSTALL_DIR}/plyara
-python setup.py test
-python setup.py install
 
 ###################################################
 ### Install and configure Yarn package manager ###
@@ -92,8 +77,20 @@ npm install -g n
 n ${NODE_VERSION}
 ln -sf /usr/local/n/versions/node/${NODE_VERSION}/bin/node /usr/bin/node
 
-# Install dependencies
+
+#################################################
+### Install Python and front-end dependencies ###
+#################################################
 cd ${INSTALL_DIR}
+
+echo "Installing Python dependencies"
+export PIPENV_VENV_IN_PROJECT=true
+pip3 install pipenv
+pipenv install
+
+
+# Install dependencies
+echo "Installing front-end dependencies"
 npm install
 npm install yarn -g
 yarn
