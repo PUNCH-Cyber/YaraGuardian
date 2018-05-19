@@ -40,7 +40,8 @@ RUN echo "Installing NodeJS version ${NODE_VERSION}" \
   && n ${NODE_VERSION} \
   && ln -sf /usr/local/n/versions/node/${NODE_VERSION}/bin/node /usr/bin/node \
   && echo "Installing python requirements..." \
-  && pip3 install -r requirements.txt \
+  && pip3 install pipenv \
+  && pipenv install --system \
   && echo "Installing front-end components" \
   && npm install yarn -g \
   && yarn \

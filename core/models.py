@@ -24,7 +24,7 @@ class User(AbstractUser):
 
 class GroupMeta(models.Model):
     group = models.OneToOneField(Group, on_delete=models.CASCADE, primary_key=True)
-    owner = models.ForeignKey(User, related_name="group_owner")
+    owner = models.ForeignKey(User, related_name="group_owner", on_delete=models.CASCADE)
     admins = models.ManyToManyField(User)
 
     source_required = models.BooleanField(default=True)

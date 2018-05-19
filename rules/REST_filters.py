@@ -2,8 +2,9 @@ import operator
 from functools import reduce
 
 import django_filters
+
 from django.db.models import Q
-from rest_framework import filters
+
 import dateutil.parser
 
 from core.services import delimit_filtervalue
@@ -11,7 +12,7 @@ from core.services import delimit_filtervalue
 from .models import YaraRule
 
 
-class YaraRuleFilter(filters.FilterSet):
+class YaraRuleFilter(django_filters.rest_framework.FilterSet):
 
     identifier = django_filters.CharFilter(method='filter_identifier')
 

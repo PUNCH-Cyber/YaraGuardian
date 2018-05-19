@@ -41,10 +41,12 @@ class YaraRule(models.Model):
     logic_hash = models.CharField(max_length=64)
 
     # Which group owns this rule
-    owner = models.ForeignKey(Group, editable=False, on_delete=models.CASCADE, related_name="rule_owner")
+    owner = models.ForeignKey(Group, editable=False, on_delete=models.CASCADE,
+                              related_name="rule_owner")
 
     # Who submitted this rule
-    submitter = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="rule_submitter")
+    submitter = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING, 
+                                  related_name="rule_submitter")
 
     # Where did the rule come from
     source = models.CharField(max_length=75, blank=True)
@@ -86,7 +88,7 @@ class YaraRule(models.Model):
 
 class YaraRuleComment(models.Model):
     content = models.TextField()
-    poster = models.ForeignKey(settings.AUTH_USER_MODEL)
+    poster = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     rule = models.ForeignKey(YaraRule, on_delete=models.CASCADE)
     modified = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)

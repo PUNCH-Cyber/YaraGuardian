@@ -1,0 +1,38 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+chardet = "*"
+coreapi = "*"
+django-angular = "*"
+django-filter = "*"
+djangorestframework = "*"
+django-rest-framework-social-oauth2 = "*"
+drfdocs = "*"
+ply = "*"
+psycopg2 = "*"
+pyjwkest = "*"
+python-dateutil = "*"
+python-json-logger = "*"
+safety = "*"
+scandir = "*"
+social-auth-app-django = "*"
+yara-python = "*"
+greenlet= "*"
+gevent = "*"
+gunicorn = "*"
+whitenoise = "*"
+Django = "==1.11"
+Markdown = "*"
+Pygments = "*"
+SQLAlchemy = "*"
+Unipath = "*"
+celery = "*"
+django-celery-beat = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.5"

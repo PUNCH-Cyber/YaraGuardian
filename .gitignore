@@ -2,7 +2,7 @@
 *.log
 *.egg
 *.egg-info
-*.lock
+yarn.lock
 .DS_Store
 .pyenv
 .vagrant
