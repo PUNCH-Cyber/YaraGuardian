@@ -152,7 +152,7 @@ INSTALLED_APPS = [
     'rules'
 ]
 
-MIDDLEWARE_CLASSES = [
+MIDDLEWARE = [
     # Add Angular URL Middleware
     'djng.middleware.AngularUrlMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -160,7 +160,6 @@ MIDDLEWARE_CLASSES = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -293,7 +292,7 @@ if SERVE_STATIC:
     INSTALLED_APPS.insert(INSTALLED_APPS.index('django.contrib.staticfiles'), 'whitenoise.runserver_nostatic')
 
     # Load whitenoise middleware to serve staticfiles
-    MIDDLEWARE_CLASSES.insert(MIDDLEWARE_CLASSES.index('django.middleware.security.SecurityMiddleware') + 1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+    MIDDLEWARE.insert(MIDDLEWARE.index('django.middleware.security.SecurityMiddleware') + 1, 'whitenoise.middleware.WhiteNoiseMiddleware')
 
 
 # Social Authentication Configurations

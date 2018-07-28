@@ -44,11 +44,11 @@ class YaraRuleFilter(django_filters.rest_framework.FilterSet):
 
     name = django_filters.CharFilter(lookup_expr='iexact')
 
-    name_contains = django_filters.CharFilter(name='name', lookup_expr='icontains')
+    name_contains = django_filters.CharFilter(field_name='name', lookup_expr='icontains')
 
-    name_startswith = django_filters.CharFilter(name='name', lookup_expr='istartswith')
+    name_startswith = django_filters.CharFilter(field_name='name', lookup_expr='istartswith')
 
-    name_endswith = django_filters.CharFilter(name='name', lookup_expr='iendswith')
+    name_endswith = django_filters.CharFilter(field_name='name', lookup_expr='iendswith')
 
     metavalue_contains = django_filters.CharFilter(method='filter_metavalue_contains')
 
@@ -111,34 +111,10 @@ class YaraRuleFilter(django_filters.rest_framework.FilterSet):
 
     def filter_any_import(self, queryset, name, value):
         imports = delimit_filtervalue(value)
-
-        for index in range(0, len(imports)):
-            entry = imports[index]
-
-            if not entry.startswith(r'"'):
-                 entry = r'"' + entry
-
-            if not entry.endswith(r'"'):
-                entry = entry + r'"'
-
-            imports[index] = entry
-
         return queryset.filter(imports__overlap=imports)
 
     def filter_all_imports(self, queryset, name, value):
         imports = delimit_filtervalue(value)
-
-        for index in range(0, len(imports)):
-            entry = imports[index]
-
-            if not entry.startswith(r'"'):
-                 entry = r'"' + entry
-
-            if not entry.endswith(r'"'):
-                entry = entry + r'"'
-
-            imports[index] = entry
-
         return queryset.filter(imports__contains=imports)
 
     def filter_any_scope(self, queryset, name, value):

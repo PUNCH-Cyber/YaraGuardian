@@ -241,13 +241,13 @@ class YaraRuleSerializer(serializers.Serializer):
 
         # Verify parsing was successful
         if submission_results['parser_error']:
-            raise serializers.ValidationError("Unable to parse submitted rule")
+            raise serializers.ValidationError(submission_results['parser_error'])
 
         # Process parsed rule
         parsed_rules = submission_results['parsed_rules']
 
         # If parsing was successful, generate keyword arguments for rule creation
-        rule_kwargs = generate_kwargs_from_parsed_rule(parsed_rules.popleft())
+        rule_kwargs = generate_kwargs_from_parsed_rule(parsed_rules.pop(0))
         rule_kwargs['owner'] = self.retrieve_request_group()
         rule_kwargs['submitter'] = self.retrieve_request_user()
         rule_kwargs['created'] = datetime.datetime.now()
@@ -285,12 +285,12 @@ class YaraRuleSerializer(serializers.Serializer):
             submission_results = parse_rule_submission(rule_content)
 
             if submission_results['parser_error']:
-                raise serializers.ValidationError("Unable to parse submitted rule")
+                raise serializers.ValidationError(submission_results['parser_error'])
 
             parsed_rules = submission_results['parsed_rules']
 
             # If parsing was successful, generate keyword arguments for rule updates
-            rule_kwargs = generate_kwargs_from_parsed_rule(parsed_rules.popleft())
+            rule_kwargs = generate_kwargs_from_parsed_rule(parsed_rules.pop(0))
 
             # Update instance attributes from the generated keyword arguments
             for attr, value in rule_kwargs.items():

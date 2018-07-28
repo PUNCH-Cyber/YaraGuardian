@@ -8,7 +8,7 @@ import YaraGuardian.API.rules
 
 
 urlpatterns = [
-    url(r'^', include('rest_framework_docs.urls')),
+    # url(r'^', include('rest_framework_docs.urls')), 
     url(r'^token-auth/', views.obtain_auth_token),
     url(r'^account/', include(YaraGuardian.API.account)),
     url(r'^groups/', include(YaraGuardian.API.groups)),

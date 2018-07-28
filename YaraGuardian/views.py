@@ -2,7 +2,7 @@ from django.conf import settings
 from django.http import HttpResponseRedirect, HttpResponse
 from django.views.generic import View, TemplateView, FormView
 from django.contrib.auth import login, logout
-from django.core.urlresolvers import reverse, reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.contrib.auth.forms import AuthenticationForm, PasswordResetForm
 
 from core.permissions import LoginRequiredModifiedMixin, RegistrationIsEnabledMixin

@@ -1,7 +1,7 @@
 from urllib.parse import urlencode
 
 from django.test import TestCase
-from django.core.urlresolvers import reverse, resolve
+from django.urls import reverse, resolve
 from django.contrib.auth.models import Group
 
 from rest_framework.test import APIRequestFactory, force_authenticate

@@ -576,7 +576,7 @@ class YaraRuleManager(models.Manager):
                 feedback['errors'].append('Invalid Category Specified: {}'.format(category))
 
         # Rules must have a non-anonymous submitter and must not have pre-processing errors
-        if not submitter.is_anonymous() and not feedback['errors']:
+        if not submitter.is_anonymous and not feedback['errors']:
 
             prepend_conflicts = 0
             append_conflicts = 0

@@ -246,7 +246,7 @@ class RulesetBulkEditView(APIView):
             parsing_error = submission_results['parser_error']
             # Identify any parsing errors that occur
             if parsing_error:
-                response_content['errors'].append(parsing_error['message'])
+                response_content['errors'].append(parsing_error)
             else:
                 # Save successfully parsed rules
                 save_results = YaraRule.objects.process_parsed_rules(parsed_rules,
@@ -345,7 +345,6 @@ class RuleDetailsView(APIView):
         group_context = get_group_or_404(group_name)
         queryset = get_queryset(group_context)
         rule = get_object_or_404(queryset, pk=rule_pk)
-
         serializer = self.serializer_class(rule, data=request.data, partial=True)
 
         if serializer.is_valid():

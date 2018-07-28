@@ -11,5 +11,3 @@ npm
 logs
 static
 node_modules
-plyara/build/*
-plyara/plyara/parsetab.py
